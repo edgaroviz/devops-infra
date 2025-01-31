@@ -12,6 +12,14 @@ jobs:
     outputs:
       skip: ${{ steps.skip.outputs.skip }}
     steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
       - name: S3_bucket_verification
         id: skip
         run: |
