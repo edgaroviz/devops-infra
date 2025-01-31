@@ -8,7 +8,7 @@ on:
 
 jobs:
   S3_bucket_verification:
-    runs-on: 
+    runs-on: ubuntu-22
     outputs:
     #   skip: ${{ steps.skip.outputs.skip }}
     # steps:
@@ -21,8 +21,12 @@ jobs:
     #         echo "::set-output name=skip::false"
     #       fi
 
+  # Bucket_creation:
+  # aws s3api create-bucket --bucket ze-my-bucket --region eu-west-1 --create-bucket-configuration LocationConstraint=eu-west-1
+
+  # Build_app_and_push:
   Build_app_and_push:
-    runs-on: 
+    runs-on: ubuntu-22
     needs: S3_bucket_verification
     if: needs.S3_bucket_verification.outputs.skip == 'false'
     permissions:
