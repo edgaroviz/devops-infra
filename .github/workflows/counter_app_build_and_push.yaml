@@ -10,7 +10,7 @@ jobs:
   S3_bucket_verification:
     runs-on: ubuntu-latest
     outputs:
-      skip: ${{ env.skip }}
+      s3_skip: ${{ env.s3_skip }}
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -20,14 +20,14 @@ jobs:
           aws-region: eu-west-1
 
       - name: S3 Bucket Verification
-        id: skip
+        id: s3_skip
         run: |
           if aws s3api head-bucket --bucket ze-my-bucket 2>/dev/null; then
               echo "Bucket exists"
-              echo "skip=true" >> $GITHUB_ENV
+              echo "s3_skip=true" >> $GITHUB_ENV
           else
               echo "Bucket does not exist or access denied"
-              echo "skip=false" >> $GITHUB_ENV
+              echo "s3_skip=false" >> $GITHUB_ENV
           fi
 
   S3_bucket_creation:
@@ -35,7 +35,7 @@ jobs:
     outputs:
       create: true
     needs: S3_bucket_verification
-    if: needs.S3_bucket_verification.outputs.skip == 'false'
+    if: needs.S3_bucket_verification.outputs.s3_skip == 'false'
     permissions:
       contents: 'write'
       id-token: 'write'
@@ -62,10 +62,70 @@ jobs:
           terraform plan
           terraform apply --auto-approve
 
-  Create_infra_tf:
+  ECR_verification:
     runs-on: ubuntu-latest
+    outputs:
+      ecr_skip: ${{ env.ecr_skip }}
     needs: [S3_bucket_verification, S3_bucket_creation]
     if: needs.S3_bucket_verification.outputs.skip == 'true' || success()
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: ECR Verification
+        id: ecr_skip
+        run: |
+          repo_name="ze-my-ecr"
+          region="eu-west-1"
+
+          if aws ecr describe-repositories --repository-names "$repo_name" --region "$region" 2>/dev/null; then
+              echo "ECR repository '$repo_name' exists."
+              echo "ecr_skip=true" >> $GITHUB_ENV
+          else
+              echo "ECR repository '$repo_name' does not exist or access denied."
+              echo "ecr_skip=false" >> $GITHUB_ENV
+          fi
+
+  ECR_creation:
+    runs-on: ubuntu-latest
+    outputs:
+      ecr_create: true
+    needs: ECR_verification
+    if: needs.ECR_verification.outputs.ecr_skip == 'false' || success()
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      # - name: Verify AWS CLI
+      #   run: aws s3 ls
+
+      - name: Create AWS ECR
+        run: |
+          echo $(pwd)
+          cd tf-infra/resources/ecr
+          terraform init
+          terraform plan
+          terraform apply --auto-approve
+
+  Create_infra_tf:
+    runs-on: ubuntu-latest
+    needs: [S3_bucket_verification, S3_bucket_creation, ECR_verification, ECR_creation]
+    if: needs.ECR_verification.outputs.skip == 'true' || success()
     permissions:
       contents: 'write'
       id-token: 'write'
@@ -85,6 +145,21 @@ jobs:
 
       # - name: Verify AWS CLI
       #   run: aws s3 ls
+
+      - name: Apply Dev env infra
+        run: |
+          echo $(pwd)
+          cd /dev/eu-west-1
+
+      - name: Apply Staging env infra
+        run: |
+          echo $(pwd)
+          cd ../../staging/eu-west-1
+
+      - name: Apply Prod env infra
+        run: |
+          echo $(pwd)
+          cd ../../prod/eu-west-1
 
 
       # - name: Configure Git user
