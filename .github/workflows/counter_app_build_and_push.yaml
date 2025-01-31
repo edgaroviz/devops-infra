@@ -67,7 +67,7 @@ jobs:
     outputs:
       ecr_skip: ${{ env.ecr_skip }}
     needs: [S3_bucket_verification, S3_bucket_creation]
-    if: needs.S3_bucket_verification.outputs.skip == 'true' || success()
+    if: needs.S3_bucket_verification.outputs.ecr_skip == 'true' || success()
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
