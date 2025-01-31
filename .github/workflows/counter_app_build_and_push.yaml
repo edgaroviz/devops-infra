@@ -1,4 +1,4 @@
-name: Build and Publish
+name: Verify/Create S3 and apply infra config
 
 on:
   workflow_dispatch:
@@ -10,54 +10,98 @@ jobs:
   S3_bucket_verification:
     runs-on: ubuntu-22
     outputs:
-    #   skip: ${{ steps.skip.outputs.skip }}
-    # steps:
-    #   - name: Verify/Create S3 bucket
-    #     id: skip
-    #     run: |
-    #       if [ "${{ github.actor }}" == "re-automation2" ]; then
-    #         echo "::set-output name=skip::true"
-    #       else
-    #         echo "::set-output name=skip::false"
-    #       fi
+      skip: ${{ steps.skip.outputs.skip }}
+    steps:
+      - name: S3_bucket_verification
+        id: skip
+        run: |
+          aws s3api head-bucket --bucket my-example-bucket 2>/dev/null
+          if [ $? -eq 0 ]; then
+              echo "Bucket exists"
+              "::set-output name=skip::true"
+          else
+              echo "Bucket does not exist or access denied"
+              echo "::set-output name=skip::false"
+          fi
 
-  # Bucket_creation:
-  # aws s3api create-bucket --bucket ze-my-bucket --region eu-west-1 --create-bucket-configuration LocationConstraint=eu-west-1
-
-  # Build_app_and_push:
-  Build_app_and_push:
+  S3_bucket_creation:
     runs-on: ubuntu-22
+    outputs:
+      create: ${{ steps.skip.outputs.create }}
     needs: S3_bucket_verification
     if: needs.S3_bucket_verification.outputs.skip == 'false'
     permissions:
       contents: 'write'
       id-token: 'write'
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
 
-      - name: Configure Git user
-        run: |
-          git config --local user.name ${{ secrets.GIT_USER }}
-          git config --local user.email ${{ secrets.GIT_EMAIL }}
+      # - name: Verify AWS CLI
+      #   run: aws s3 ls
 
-      - name: Set up Git remote with PAT
+      - name: Create S3 Bucket
         run: |
-          git remote set-url origin https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/cybereason-labs/defender-design-system.git
-
-      - name: Fetch and rebase from master
-        run: |
-          echo $(git branch)
-          git fetch origin
-          git pull
-
-      - name: Push package.json to master
-        run: |
-          echo "current directory:"
           echo $(pwd)
-          git add ***hash of new container
-          git commit -m "Version update on build"
-          git push origin master --force-with-lease
+          cd tf-infra/resources/s3-bucket
+          terraform init
+          terraform plan
+          terraform apply --auto-approve
+
+  Create_infra_tf:
+    runs-on: ubuntu-22
+    needs: S3_bucket_creation
+    # if: needs.S3_bucket_verification.outputs.skip == 'true'
+    # permissions:
+    #   contents: 'write'
+    #   id-token: 'write'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      # - name: Verify AWS CLI
+      #   run: aws s3 ls
+
+
+      # - name: Configure Git user
+      #   run: |
+      #     git config --local user.name ${{ secrets.GIT_USER }}
+      #     git config --local user.email ${{ secrets.GIT_EMAIL }}
+
+      # - name: Set up Git remote with PAT
+      #   run: |
+      #     git remote set-url origin https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/cybereason-labs/defender-design-system.git
+
+      # - name: Fetch and rebase from master
+      #   run: |
+      #     echo $(git branch)
+      #     git fetch origin
+      #     git pull
+
+      # - name: Push package.json to master
+      #   run: |
+      #     echo "current directory:"
+      #     echo $(pwd)
+      #     git add ***hash of new container
+      #     git commit -m "Version update on build"
+      #     git push origin master --force-with-lease
