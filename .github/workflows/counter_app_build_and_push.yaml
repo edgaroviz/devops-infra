@@ -22,7 +22,7 @@ jobs:
       - name: S3 Bucket Verification
         id: skip
         run: |
-          if aws s3api head-bucket --bucket my-example-bucket 2>/dev/null; then
+          if aws s3api head-bucket --bucket ze-my-bucket 2>/dev/null; then
               echo "Bucket exists"
               echo "skip=true" >> $GITHUB_ENV
           else
