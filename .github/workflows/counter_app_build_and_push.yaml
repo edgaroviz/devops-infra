@@ -1,0 +1,59 @@
+name: Build and Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  S3_bucket_verification:
+    runs-on: 
+    outputs:
+    #   skip: ${{ steps.skip.outputs.skip }}
+    # steps:
+    #   - name: Verify/Create S3 bucket
+    #     id: skip
+    #     run: |
+    #       if [ "${{ github.actor }}" == "re-automation2" ]; then
+    #         echo "::set-output name=skip::true"
+    #       else
+    #         echo "::set-output name=skip::false"
+    #       fi
+
+  Build_app_and_push:
+    runs-on: 
+    needs: S3_bucket_verification
+    if: needs.S3_bucket_verification.outputs.skip == 'false'
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Configure Git user
+        run: |
+          git config --local user.name ${{ secrets.GIT_USER }}
+          git config --local user.email ${{ secrets.GIT_EMAIL }}
+
+      - name: Set up Git remote with PAT
+        run: |
+          git remote set-url origin https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/cybereason-labs/defender-design-system.git
+
+      - name: Fetch and rebase from master
+        run: |
+          echo $(git branch)
+          git fetch origin
+          git pull
+
+      - name: Push package.json to master
+        run: |
+          echo "current directory:"
+          echo $(pwd)
+          git add ***hash of new container
+          git commit -m "Version update on build"
+          git push origin master --force-with-lease
