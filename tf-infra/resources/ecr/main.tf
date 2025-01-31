@@ -1,5 +1,5 @@
-resource "aws_ecr_repository" "ze-counter-service-ecr" {
-  name                 = "ze-counter-service-ecr"
+resource "aws_ecr_repository" "ze-my-ecr" {
+  name                 = "ze-my-ecr"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
