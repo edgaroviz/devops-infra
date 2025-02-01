@@ -192,7 +192,7 @@ jobs:
         run: |
           helm repo add argo https://argoproj.github.io/argo-helm
           pwd
-          ls tf-infra/env/dev/ArgoCD/argocd_values.yaml
+          ls -lhtra
           for env in $(ls tf-infra/env); do
-            helm install argocd-demo argo/argo-cd -f tf-infra/env/${env}/ArgoCD/argocd_values.yaml 
+            helm install argocd-demo argo/argo-cd -f argocd-values/argocd-values.yaml 
           done
