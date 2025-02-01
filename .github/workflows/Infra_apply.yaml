@@ -177,8 +177,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
-      - name: Helm Deploy
-        uses: vimeda/helm@v1.7.0
+      - uses: azure/setup-helm@v4.2.0
+        with:
+          version: 'latest'
 
       - name: Save cluster info to kube.config file
         run: |
