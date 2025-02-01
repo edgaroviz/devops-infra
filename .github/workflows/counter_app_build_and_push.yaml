@@ -21,7 +21,7 @@ jobs:
   #         aws-region: eu-west-1
 
   #     - name: S3 Bucket Verification
-  #       id: s3_check  # ✅ Changed step ID to match outputs
+  #       id: s3_check
   #       run: |
   #         if aws s3api head-bucket --bucket ze-my-bucket 2>/dev/null; then
   #             echo "s3_skip=true" >> $GITHUB_OUTPUT
@@ -75,8 +75,8 @@ jobs:
   #     - name: ECR Verification
   #       id: ecr_check
   #       run: |
-          # repo_name="ze-my-ecr"
-          # region="eu-west-1"
+  #         repo_name="ze-my-ecr"
+  #         region="eu-west-1"
 
   #         if aws ecr describe-repositories --repository-names "$repo_name" --region "$region" 2>/dev/null; then
   #             echo "ecr_skip=true" >> $GITHUB_OUTPUT
