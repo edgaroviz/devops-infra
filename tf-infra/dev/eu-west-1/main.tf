@@ -1,4 +1,4 @@
-module "ze-dev-eu-west-1-vpc" {
+module "vpc" {
   source = "../../modules/vpc"
 
   region = local.region
