@@ -141,9 +141,8 @@ jobs:
       - name: Apply Dev env infra
         run: |
           echo $pwd
-          echo $(pwd)
+          echo $ls
           cd dev/eu-west-1
-          echo $(pwd)
           terraform init
           terraform plan
 
