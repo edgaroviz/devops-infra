@@ -79,17 +79,17 @@ jobs:
           aws-region: eu-west-1
 
       - name: ECR Verification
-        id: ecr_skip
+        id: ecr_check
         run: |
           repo_name="ze-my-ecr"
           region="eu-west-1"
 
           if aws ecr describe-repositories --repository-names "$repo_name" --region "$region" 2>/dev/null; then
               echo "ECR repository '$repo_name' exists."
-              echo "ecr_skip=true" >> $GITHUB_ENV
+              echo "ecr_skip=true" >> $GITHUB_OUTPUT
           else
               echo "ECR repository '$repo_name' does not exist or access denied."
-              echo "ecr_skip=false" >> $GITHUB_ENV
+              echo "ecr_skip=false" >> $GITHUB_OUTPUT
           fi
 
   ECR_creation:
@@ -97,7 +97,7 @@ jobs:
     outputs:
       ecr_create: true
     needs: ECR_verification
-    if: needs.ECR_verification.outputs.ecr_skip == 'false' || success()
+    if: needs.ECR_verification.outputs.ecr_skip == 'false'
     permissions:
       contents: 'write'
       id-token: 'write'
@@ -127,7 +127,7 @@ jobs:
   Create_infra_tf:
     runs-on: ubuntu-latest
     needs: [S3_bucket_verification, S3_bucket_creation, ECR_verification, ECR_creation]
-    if: needs.ECR_verification.outputs.skip == 'true' || success()
+    if: needs.ECR_verification.outputs.ecr_skip == 'true'
     permissions:
       contents: 'write'
       id-token: 'write'
