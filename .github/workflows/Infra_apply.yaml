@@ -191,4 +191,4 @@ jobs:
       - name: Deploy ArgoCD
         run: |
           helm repo add argo https://argoproj.github.io/argo-helm
-          helm install argocd-demo argo/argo-cd -f tf-infra/env/$env/ArgoCD/argocd-values.yaml
+          helm install argocd-demo argo/argo-cd -f tf-infra/env/${env}/ArgoCD/argocd-values.yaml
