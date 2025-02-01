@@ -75,43 +75,43 @@ jobs:
   #     - name: ECR Verification
   #       id: ecr_check
   #       run: |
-          repo_name="ze-my-ecr"
-          region="eu-west-1"
+          # repo_name="ze-my-ecr"
+          # region="eu-west-1"
 
-          if aws ecr describe-repositories --repository-names "$repo_name" --region "$region" 2>/dev/null; then
-              echo "ecr_skip=true" >> $GITHUB_OUTPUT
-          else
-              echo "ecr_skip=false" >> $GITHUB_OUTPUT
-          fi
+  #         if aws ecr describe-repositories --repository-names "$repo_name" --region "$region" 2>/dev/null; then
+  #             echo "ecr_skip=true" >> $GITHUB_OUTPUT
+  #         else
+  #             echo "ecr_skip=false" >> $GITHUB_OUTPUT
+  #         fi
 
-  ECR_creation:
-    runs-on: ubuntu-latest
-    outputs:
-      ecr_create: true
-    needs: ECR_verification
-    if: needs.ECR_verification.outputs.ecr_skip == 'false'
-    permissions:
-      contents: 'write'
-      id-token: 'write'
+  # ECR_creation:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     ecr_create: true
+  #   needs: ECR_verification
+  #   if: needs.ECR_verification.outputs.ecr_skip == 'false'
+  #   permissions:
+  #     contents: 'write'
+  #     id-token: 'write'
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v3
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: eu-west-1
 
-      - name: Create AWS ECR
-        run: |
-          echo $(pwd)
-          cd tf-infra/resources/ecr
-          terraform init
-          terraform plan
-          echo "reached tf apply"
+  #     - name: Create AWS ECR
+  #       run: |
+  #         echo $(pwd)
+  #         cd tf-infra/resources/ecr
+  #         terraform init
+  #         terraform plan
+  #         echo "reached tf apply"
 
   Create_infra_tf:
     runs-on: ubuntu-latest
@@ -140,6 +140,7 @@ jobs:
 
       - name: Apply Dev env infra
         run: |
+          echo $pwd
           echo $(pwd)
           cd dev/eu-west-1
           echo $(pwd)
