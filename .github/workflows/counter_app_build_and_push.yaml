@@ -21,13 +21,11 @@ jobs:
           aws-region: eu-west-1
 
       - name: S3 Bucket Verification
-        id: s3_skip
+        id: s3_check  # ✅ Changed step ID to match outputs
         run: |
           if aws s3api head-bucket --bucket ze-my-bucket 2>/dev/null; then
-              echo "Bucket exists"
               echo "s3_skip=true" >> $GITHUB_OUTPUT
           else
-              echo "Bucket does not exist or access denied"
               echo "s3_skip=false" >> $GITHUB_OUTPUT
           fi
 
@@ -44,16 +42,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
-
-      # - name: Verify AWS CLI
-      #   run: aws s3 ls
 
       - name: Create S3 Bucket
         run: |
@@ -68,8 +63,7 @@ jobs:
     outputs:
       ecr_skip: ${{ steps.ecr_check.outputs.ecr_skip }}
     needs: [S3_bucket_verification, S3_bucket_creation]
-    if: needs.S3_bucket_verification.outputs.s3_skip == 'true' || success()
-    
+    if: always()  # ✅ Always run this after S3 verification
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -85,10 +79,8 @@ jobs:
           region="eu-west-1"
 
           if aws ecr describe-repositories --repository-names "$repo_name" --region "$region" 2>/dev/null; then
-              echo "ECR repository '$repo_name' exists."
               echo "ecr_skip=true" >> $GITHUB_OUTPUT
           else
-              echo "ECR repository '$repo_name' does not exist or access denied."
               echo "ecr_skip=false" >> $GITHUB_OUTPUT
           fi
 
@@ -105,16 +97,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
-
-      # - name: Verify AWS CLI
-      #   run: aws s3 ls
 
       - name: Create AWS ECR
         run: |
@@ -137,7 +126,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-      
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -148,41 +137,23 @@ jobs:
       - name: Apply Dev env infra
         run: |
           echo $(pwd)
-          cd /dev/eu-west-1
+          cd dev/eu-west-1
           echo $(pwd)
+          terraform init
+          terraform plan
 
       - name: Apply Staging env infra
         run: |
           echo $(pwd)
-          cd ../../staging/eu-west-1
+          cd staging/eu-west-1
           echo $(pwd)
+          terraform init
+          terraform plan
 
       - name: Apply Prod env infra
         run: |
           echo $(pwd)
-          cd ../../prod/eu-west-1
+          cd prod/eu-west-1
           echo $(pwd)
-
-
-      # - name: Configure Git user
-      #   run: |
-      #     git config --local user.name ${{ secrets.GIT_USER }}
-      #     git config --local user.email ${{ secrets.GIT_EMAIL }}
-
-      # - name: Set up Git remote with PAT
-      #   run: |
-      #     git remote set-url origin https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/cybereason-labs/defender-design-system.git
-
-      # - name: Fetch and rebase from master
-      #   run: |
-      #     echo $(git branch)
-      #     git fetch origin
-      #     git pull
-
-      # - name: Push package.json to master
-      #   run: |
-      #     echo "current directory:"
-      #     echo $(pwd)
-      #     git add ***hash of new container
-      #     git commit -m "Version update on build"
-      #     git push origin master --force-with-lease
+          terraform init
+          terraform plan
