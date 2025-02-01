@@ -184,11 +184,11 @@ jobs:
       - name: Save cluster info to kube.config file
         run: |
           for env in $(ls tf-infra/env); do
-            echo "Adding $env to kube config"
+            echo "Adding ${env} to kube config"
             aws eks --region eu-west-1 update-kubeconfig --name $env-eu-west-1-ze-eks --kubeconfig ~/.kube/config
           done
 
       - name: Deploy ArgoCD
         run: |
           helm repo add argo https://argoproj.github.io/argo-helm
-          helm install argocd-demo argo/argo-cd -f ArgoCD/argocd-custom-values.yaml
+          helm install argocd-demo argo/argo-cd -f tf-infra/env/$env/ArgoCD/argocd-values.yaml
