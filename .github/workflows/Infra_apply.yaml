@@ -185,7 +185,7 @@ jobs:
         run: |
           for env in $(ls tf-infra/env); do
             echo "Adding $env to kube config"
-            aws eks --region eu-west-1 update-kubeconfig --name $env-$region-ze-eks --kubeconfig ~/.kube/config
+            aws eks --region eu-west-1 update-kubeconfig --name $env-eu-west-1-ze-eks --kubeconfig ~/.kube/config
 
       - name: Deploy ArgoCD
         run: |
