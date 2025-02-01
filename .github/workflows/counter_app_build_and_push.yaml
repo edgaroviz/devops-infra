@@ -5,12 +5,13 @@ on:
   push:
     branches:
       - master
+      - feature-git-actions-testing
 
 jobs:
   S3_bucket_verification:
     runs-on: ubuntu-latest
     outputs:
-      s3_skip: ${{ env.s3_skip }}
+      s3_skip: ${{ steps.s3_check.outputs.s3_skip }}
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -24,10 +25,10 @@ jobs:
         run: |
           if aws s3api head-bucket --bucket ze-my-bucket 2>/dev/null; then
               echo "Bucket exists"
-              echo "s3_skip=true" >> $GITHUB_ENV
+              echo "s3_skip=true" >> $GITHUB_OUTPUT
           else
               echo "Bucket does not exist or access denied"
-              echo "s3_skip=false" >> $GITHUB_ENV
+              echo "s3_skip=false" >> $GITHUB_OUTPUT
           fi
 
   S3_bucket_creation:
@@ -60,14 +61,15 @@ jobs:
           cd tf-infra/resources/s3-bucket
           terraform init
           terraform plan
-          terraform apply --auto-approve
+          echo "reached tf apply"
 
   ECR_verification:
     runs-on: ubuntu-latest
     outputs:
-      ecr_skip: ${{ env.ecr_skip }}
+      ecr_skip: ${{ steps.ecr_check.outputs.ecr_skip }}
     needs: [S3_bucket_verification, S3_bucket_creation]
-    if: needs.S3_bucket_verification.outputs.ecr_skip == 'true' || success()
+    if: needs.S3_bucket_verification.outputs.s3_skip == 'true' || success()
+    
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -120,7 +122,7 @@ jobs:
           cd tf-infra/resources/ecr
           terraform init
           terraform plan
-          terraform apply --auto-approve
+          echo "reached tf apply"
 
   Create_infra_tf:
     runs-on: ubuntu-latest
@@ -143,23 +145,23 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
-      # - name: Verify AWS CLI
-      #   run: aws s3 ls
-
       - name: Apply Dev env infra
         run: |
           echo $(pwd)
           cd /dev/eu-west-1
+          echo $(pwd)
 
       - name: Apply Staging env infra
         run: |
           echo $(pwd)
           cd ../../staging/eu-west-1
+          echo $(pwd)
 
       - name: Apply Prod env infra
         run: |
           echo $(pwd)
           cd ../../prod/eu-west-1
+          echo $(pwd)
 
 
       # - name: Configure Git user
