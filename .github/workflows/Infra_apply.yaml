@@ -181,18 +181,20 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Save cluster info to kube.config file
-        run: |
-          for env in $(ls tf-infra/env); do
-            echo "Adding ${env} to kube config"
-            aws eks --region eu-west-1 update-kubeconfig --name $env-eu-west-1-ze-eks --kubeconfig ~/.kube/config
-          done
+      # - name: Save cluster info to kube.config file
+      #   run: |
+      #     for env in $(ls tf-infra/env); do
+      #       echo "Adding ${env} to kube config"
+      #       aws eks --region eu-west-1 update-kubeconfig --name $env-eu-west-1-ze-eks --kubeconfig ~/.kube/config
+      #     done
 
       - name: Deploy ArgoCD
         run: |
           helm repo add argo https://argoproj.github.io/argo-helm
           for env in $(ls tf-infra/env); do
-            helm install argocd-$env argo/argo-cd -f argocd-values/argocd-values.yaml --namespace argocd --create-namespace
+            echo "Adding ${env} to kube config and installing ArgoCD"
+            aws eks --region eu-west-1 update-kubeconfig --name $env-eu-west-1-ze-eks --kubeconfig ~/.kube/config
+            helm upgrade argocd-$env argo/argo-cd -f argocd-values/argocd-values.yaml --namespace argocd --create-namespace
             
           done
 
