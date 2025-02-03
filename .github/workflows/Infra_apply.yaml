@@ -194,13 +194,12 @@ jobs:
           for env in $(ls tf-infra/env); do
             echo "Adding ${env} to kube config and installing ArgoCD"
             aws eks --region eu-west-1 update-kubeconfig --name $env-eu-west-1-ze-eks --kubeconfig ~/.kube/config
-            helm upgrade argocd-$env argo/argo-cd -f argocd-values/argocd-values.yaml --namespace argocd --create-namespace
-            
+            helm upgrade argocd-$env argo/argo-cd -f argocd-values/argocd-values.yaml --namespace argocd --create-namespace --install
           done
 
       - name: Attach repo to ArgoCD
         run: |
-          kubectl create secret generic argocd-counter-service-repo \
+          kubectl create secret argocd-counter-service-repo \
           --namespace argocd \
           --from-literal=url=https://github.com/edgaroviz/devops-infra.git \
           --from-literal=username=argocd-private-repo \
