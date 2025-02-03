@@ -199,7 +199,7 @@ jobs:
 
       - name: Attach repo to ArgoCD
         run: |
-          kubectl create secret argocd-counter-service-repo \
+          kubectl create secret generic argocd-counter-service-repo \
           --namespace argocd \
           --from-literal=url=https://github.com/edgaroviz/devops-infra.git \
           --from-literal=username=argocd-private-repo \
