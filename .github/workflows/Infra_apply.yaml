@@ -203,5 +203,5 @@ jobs:
           --namespace argocd \
           --from-literal=url=https://github.com/edgaroviz/devops-infra.git \
           --from-literal=username=argocd-private-repo \
-          --from-literal=password= ${{ secrets.PAT_GITHUB }} \
+          --from-literal=password=${{ secrets.PAT_GITHUB }} \
           --type Opaque
