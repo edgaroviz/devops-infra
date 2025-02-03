@@ -146,21 +146,21 @@ jobs:
           terraform init
           terraform plan
 # TODO
-      - name: Apply Staging env infra
-        run: |
-          echo $(pwd)
-          cd tf-infra/env/staging/eu-west-1
-          echo $(pwd)
-          terraform init
-          terraform plan
-# TODO 
-      - name: Apply Prod env infra
-        run: |
-          echo $(pwd)
-          cd tf-infra/env/prod/eu-west-1
-          echo $(pwd)
-          terraform init
-          terraform plan
+#       - name: Apply Staging env infra
+#         run: |
+#           echo $(pwd)
+#           cd tf-infra/env/staging/eu-west-1
+#           echo $(pwd)
+#           terraform init
+#           terraform plan
+# # TODO 
+#       - name: Apply Prod env infra
+#         run: |
+#           echo $(pwd)
+#           cd tf-infra/env/prod/eu-west-1
+#           echo $(pwd)
+#           terraform init
+#           terraform plan
 
   Argo_installation:
     runs-on: ubuntu-latest
@@ -193,4 +193,14 @@ jobs:
           helm repo add argo https://argoproj.github.io/argo-helm
           for env in $(ls tf-infra/env); do
             helm install argocd-$env argo/argo-cd -f argocd-values/argocd-values.yaml --namespace argocd --create-namespace
+            
           done
+
+      - name: Attach repo to ArgoCD
+        run: |
+          kubectl create secret generic argocd-counter-service-repo \
+          --namespace argocd \
+          --from-literal=url=https://github.com/edgaroviz/devops-infra.git \
+          --from-literal=username=argocd-private-repo \
+          --from-literal=password= ${{ secrets.GITHUB_PAT }} \
+          --type Opaque
