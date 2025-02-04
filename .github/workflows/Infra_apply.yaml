@@ -58,19 +58,19 @@ jobs:
           terraform plan
           echo "reached tf apply"
 
-  ECR_verification:
-    runs-on: ubuntu-latest
-    outputs:
-      ecr_skip: ${{ steps.ecr_check.outputs.ecr_skip }}
-    needs: [S3_bucket_verification, S3_bucket_creation]
-    if: always()
-    steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
+  # ECR_verification:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     ecr_skip: ${{ steps.ecr_check.outputs.ecr_skip }}
+  #   needs: [S3_bucket_verification, S3_bucket_creation]
+  #   if: always()
+  #   steps:
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v3
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: eu-west-1
 
       # - name: ECR Verification
       #   id: ecr_check
@@ -88,8 +88,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       ecr_create: true
-    needs: ECR_verification
-    if: needs.ECR_verification.outputs.ecr_skip == 'false'
+    # needs: ECR_verification
+    # if: needs.ECR_verification.outputs.ecr_skip == 'false'
     permissions:
       contents: 'write'
       id-token: 'write'
