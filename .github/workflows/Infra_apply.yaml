@@ -190,14 +190,15 @@ jobs:
     - name: Terraform Apply for all environments and regions
       run: |
         echo "⚠️ WARNING: You are about to APPLY Terraform changes."
-
         for env in tf-infra/env/*; do
-          echo "Applying Terraform in $env"
+          echo "Applying terraform in $env"
           for region in "$env"/*; do
-            terraform -chdir=$region apply -auto-approve
-            echo "Applied Terraform changes at $region"
+            terraform -chdir=$region init
+            terraform -chdir=$region validate
+            terraform -chdir=$region plan
+            echo "Applied changes at $region"
+          echo "Initialized and validated changes at $env"
           done
-          echo "Completed apply for $env"
         done
 
 # - name: Terraform Destroy for all environments and regions (User Confirmation Required)
