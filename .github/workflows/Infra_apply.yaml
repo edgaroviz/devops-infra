@@ -149,7 +149,7 @@ jobs:
       - name: Terraform init, validate and plan for all environments and regions
         run: |
           for env in tf-infra/env/*; do
-            echo "Applying terraform in $env"
+            echo "Terraform init, valite and plan in $env"
             for region in "$env"/*; do
               terraform -chdir=$region init
               terraform -chdir=$region validate
@@ -193,9 +193,7 @@ jobs:
         for env in tf-infra/env/*; do
           echo "Applying terraform in $env"
           for region in "$env"/*; do
-            terraform -chdir=$region init
-            terraform -chdir=$region validate
-            terraform -chdir=$region plan
+            terraform -chdir=$region apply -auto-approve
             echo "Applied changes at $region"
           echo "Initialized and validated changes at $env"
           done
