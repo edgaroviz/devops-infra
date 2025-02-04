@@ -104,6 +104,11 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
+      
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
 
       - name: Create AWS ECR
         run: |
@@ -138,30 +143,51 @@ jobs:
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
-# TODO
-      - name: Apply Dev env infra
+        with:
+          terraform_version: 1.10.5
+
+      # - name: Terraform init and validate for all environments and regions
+      #   run: |
+      #     for env in tf-infra/env/*; do
+      #       echo "Applying terraform in $env"
+      #       for region in "$env"*/; do
+      #         terraform -chdir=$region init
+      #         terraform -chdir=$region validate
+      #         echo "Applied changes at $region"
+      #       echo "Applied changes at $env"
+      #       done
+      #     done
+
+
+      - name: Terraform Apply for all environments and regions (User Confirmation Required)
         run: |
-          echo $(pwd)
-          echo $(ls)
-          cd tf-infra/env/dev/eu-west-1
-          terraform init
-          terraform plan
-# TODO
-      - name: Apply Staging env infra
-        run: |
-          echo $(pwd)
-          cd tf-infra/env/staging/eu-west-1
-          echo $(pwd)
-          terraform init
-          terraform plan
-# TODO 
-      - name: Apply Prod env infra
-        run: |
-          echo $(pwd)
-          cd tf-infra/env/prod/eu-west-1
-          echo $(pwd)
-          terraform init
-          terraform plan
+          echo "⚠️ WARNING: You are about to APPLY Terraform changes."
+          echo "Type 'yes' to proceed, or any other key to cancel:"
+          read confirmation
+          if [[ "$confirmation" == "yes" ]]; then
+            for env in tf-infra/env/*; do
+              echo "Applying Terraform in $env"
+              for region in "$env"*/; do
+                terraform -chdir=$region validate
+                echo "Applied Terraform changes at $region"
+              done
+              echo "Completed apply for $env"
+            done
+          else
+            echo "❌ Terraform apply cancelled."
+            exit 1
+          fi
+# # TODO
+#       - name: Terraform init and validate for all environments and regions
+#         run: |
+#           for env in tf-infra/env/*; do
+#             echo "Applying terraform in $env"
+#             for region in "$env"*/; do
+#               terraform -chdir=$region validate
+#               echo "Applied changes at $region"
+#             echo "Applied changes at $env"
+#             done
+#           done
 
   Argo_installation:
     runs-on: ubuntu-latest
