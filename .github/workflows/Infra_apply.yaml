@@ -187,25 +187,18 @@ jobs:
       contents: read
 
     steps:
-    - name: Terraform Apply for all environments and regions (User Confirmation Required)
+    - name: Terraform Apply for all environments and regions
       run: |
         echo "⚠️ WARNING: You are about to APPLY Terraform changes."
-        echo "Type 'yes' to proceed, or any other key to cancel:"
-        read confirmation
 
-        if [[ "$confirmation" == "yes" ]]; then
-          for env in tf-infra/env/*; do
-            echo "Applying Terraform in $env"
-            for region in "$env"/*; do
-              terraform -chdir=$region validate
-              echo "Applied Terraform changes at $region"
-            done
-            echo "Completed apply for $env"
+        for env in tf-infra/env/*; do
+          echo "Applying Terraform in $env"
+          for region in "$env"/*; do
+            terraform -chdir=$region apply -auto-approve
+            echo "Applied Terraform changes at $region"
           done
-        else
-          echo "Terraform apply cancelled."
-          exit 1
-        fi
+          echo "Completed apply for $env"
+        done
 
 # - name: Terraform Destroy for all environments and regions (User Confirmation Required)
 #   run: |
