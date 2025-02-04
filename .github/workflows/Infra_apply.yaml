@@ -150,7 +150,7 @@ jobs:
         run: |
           for env in tf-infra/env/*; do
             echo "Applying terraform in $env"
-            for region in "$env"*/; do
+            for region in "$env"/*; do
               terraform -chdir=$region init
               terraform -chdir=$region validate
               terraform -chdir=$region plan
