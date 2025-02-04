@@ -210,6 +210,7 @@ jobs:
           for env in tf-infra/env/*; do
             echo "Applying terraform in $env"
             for region in "$env"/*; do
+              terraform -chdir=$region init
               terraform -chdir=$region apply -auto-approve
               echo "Applied changes at $region"
             echo "Initialized and validated changes at $env"
