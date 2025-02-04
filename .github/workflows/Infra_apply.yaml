@@ -1,11 +1,11 @@
 name: Verify/Create S3, ECR and apply infra config
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - master
       - feature-git-actions-testing
+  workflow_dispatch:
 
 jobs:
   S3_bucket_verification:
@@ -159,28 +159,29 @@ jobs:
             done
           done
 
-  manual-approval:
-    name: Manual Approval
-    runs-on: ubuntu-latest
-    needs: Terraform-init-validate-plan
-    if: always()
+  # manual-approval:
+  #   name: Manual Approval
+  #   runs-on: ubuntu-latest
+  #   needs: Terraform-init-validate-plan
+  #   if: always()
     
-    permissions:
-      issues: write
+  #   permissions:
+  #     issues: write
 
-    steps:
-      - name: Await Manual Approval
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.TOKEN }}
-          approvers: edgaroviz
-          minimum-approvals: 1
-          issue-title: "Manual Approval Required for Terraform Apply"
-          issue-body: "Please approve or deny the deployment."
+  #   steps:
+  #     - name: Await Manual Approval
+  #       uses: trstringer/manual-approval@v1
+  #       with:
+  #         secret: ${{ github.TOKEN }}
+  #         approvers: edgaroviz
+  #         minimum-approvals: 1
+  #         issue-title: "Manual Approval Required for Terraform Apply"
+  #         issue-body: "Please approve or deny the deployment."
 
   terraform-apply:
+    if: github.event_name == 'workflow_dispatch'  # Only runs when manually triggered
     runs-on: ubuntu-latest
-    needs: manual-approval
+    needs: Terraform-init-validate-plan
     permissions:
       id-token: write
       contents: read
@@ -203,6 +204,25 @@ jobs:
             echo "❌ Terraform apply cancelled."
             exit 1
           fi
+
+# - name: Terraform Destroy for all environments and regions (User Confirmation Required)
+#   run: |
+#     echo "⚠️ WARNING: You are about to DESTROY all Terraform resources."
+#     echo "Type 'destroy' to proceed, or any other key to cancel:"
+#     read confirmation
+#     if [[ "$confirmation" == "destroy" ]]; then
+#       for env in tf-infra/env/*; do
+#         echo "Destroying Terraform resources in $env"
+#         for region in "$env"*/; do
+#           terraform -chdir=$region destroy -auto-approve
+#           echo "Destroyed Terraform resources at $region"
+#         done
+#         echo "Completed destroy for $env"
+#       done
+#     else
+#       echo "❌ Terraform destroy cancelled."
+#       exit 1
+#     fi
 
   # Argo_installation:
   #   runs-on: ubuntu-latest
