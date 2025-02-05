@@ -92,7 +92,7 @@ jobs:
           terraform plan
           terraform apply --auto-approve
 
-  Terraform-init-validate-plan:
+  Terraform-init-validate-plan-apply:
     runs-on: ubuntu-latest
     # needs: [S3_bucket_verification, S3_bucket_creation, ECR_verification, ECR_creation]
     needs: [S3_bucket_verification, S3_bucket_creation, ECR_creation]
@@ -210,6 +210,8 @@ jobs:
 #     fi
 
   Argo_installation:
+    needs: [Terraform-init-validate-plan-apply]
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
