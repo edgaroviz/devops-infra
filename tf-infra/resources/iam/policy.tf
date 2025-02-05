@@ -1,4 +1,4 @@
-resource "aws_iam_policy" "ze_my_ecr_push_policy" {
+resource "aws_iam_policy" "ecr_policy" {
   name        = "ECRpush-only_for-ze-my-ecr "
   description = "IAM policy for accessing ECR repository"
 

@@ -1,5 +1,5 @@
 locals {
-  environment = "prod"
+  environment = "dev"
   region = "eu-west-1"
   vpc = {
     public_subnets = ["10.0.10.0/24", "10.0.20.0/24"]

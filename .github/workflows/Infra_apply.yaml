@@ -149,7 +149,7 @@ jobs:
       - name: Terraform init, validate and plan for all environments and regions
         run: |
           for env in tf-infra/env/*; do
-            echo "Applying terraform in $env"
+            echo "Terraform init, valite and plan in $env"
             for region in "$env"/*; do
               terraform -chdir=$region init
               terraform -chdir=$region validate
@@ -159,50 +159,82 @@ jobs:
             done
           done
 
-  manual-approval:
-    name: Manual Approval
-    runs-on: ubuntu-latest
-    needs: Terraform-init-validate-plan
-    if: success()
+  # manual-approval:
+  #   name: Manual Approval
+  #   runs-on: ubuntu-latest
+  #   needs: Terraform-init-validate-plan
+  #   if: always()
     
-    permissions:
-      issues: write
+  #   permissions:
+  #     issues: write
 
-    steps:
-      - name: Await Manual Approval
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.TOKEN }}
-          approvers: edgaroviz
-          minimum-approvals: 1
-          issue-title: "Manual Approval Required for Terraform Apply"
-          issue-body: "Please approve or deny the deployment."
+  #   steps:
+  #     - name: Await Manual Approval
+  #       uses: trstringer/manual-approval@v1
+  #       with:
+  #         secret: ${{ github.TOKEN }}
+  #         approvers: edgaroviz
+  #         minimum-approvals: 1
+  #         issue-title: "Manual Approval Required for Terraform Apply"
+  #         issue-body: "Please approve or deny the deployment."
 
   terraform-apply:
     runs-on: ubuntu-latest
-    needs: manual-approval
+    needs: Terraform-init-validate-plan
+    if: always()
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - name: Terraform Apply for all environments and regions (User Confirmation Required)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+
+      - name: Terraform Apply for all environments and regions
         run: |
           echo "⚠️ WARNING: You are about to APPLY Terraform changes."
-          echo "Type 'yes' to proceed, or any other key to cancel:"
-          read confirmation
           for env in tf-infra/env/*; do
-            echo "Applying Terraform in $env"
-            for region in "$env"*/; do
+            echo "Applying terraform in $env"
+            for region in "$env"/*; do
+              terraform -chdir=$region init
               terraform -chdir=$region apply -auto-approve
-              echo "Applied Terraform changes at $region"
+              echo "Applied changes at $region"
+            echo "Initialized and validated changes at $env"
             done
-            echo "Completed apply for $env"
           done
-          else
-            echo "❌ Terraform apply cancelled."
-            exit 1
-          fi
+
+# - name: Terraform Destroy for all environments and regions (User Confirmation Required)
+#   run: |
+#     echo "⚠️ WARNING: You are about to DESTROY all Terraform resources."
+#     echo "Type 'destroy' to proceed, or any other key to cancel:"
+#     read confirmation
+#     if [[ "$confirmation" == "destroy" ]]; then
+#       for env in tf-infra/env/*; do
+#         echo "Destroying Terraform resources in $env"
+#         for region in "$env"*/; do
+#           terraform -chdir=$region destroy -auto-approve
+#           echo "Destroyed Terraform resources at $region"
+#         done
+#         echo "Completed destroy for $env"
+#       done
+#     else
+#       echo "❌ Terraform destroy cancelled."
+#       exit 1
+#     fi
 
   # Argo_installation:
   #   runs-on: ubuntu-latest
