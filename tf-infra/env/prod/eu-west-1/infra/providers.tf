@@ -7,11 +7,21 @@ terraform {
   }
   backend "s3" {
     bucket = "ze-my-bucket"
-    key    = "tf-infra/env/prod/eu-west-1/terraform.tfstate"
+    key    = "tf-infra/env/prod/eu-west-1/infra/terraform.tfstate"
     region = "eu-west-1"
   }
 }
 
 provider "aws" {
   region = "eu-west-1"
+}
+
+provider "helm" {
+  kubernetes {
+    config_path = "~/.kube/config"
+  }
+}
+
+provider "kubernetes" {
+  config_path = "~/.kube/config"
 }

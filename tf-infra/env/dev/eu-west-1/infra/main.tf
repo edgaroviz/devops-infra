@@ -1,5 +1,5 @@
 module "vpc" {
-  source = "../../../modules/vpc"
+  source = "../../../../modules/vpc"
 
   region = local.region
   
@@ -23,11 +23,18 @@ output "public_subnet_ids" {
 
 module "eks" {
   depends_on = [ module.vpc ]
-  source = "../../../modules/eks"
+  source = "../../../../modules/eks"
 
   environment = local.environment
   vpc_id = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnet_ids
   region = local.region
-  # extended_support = 
 }
+
+# module "argocd" {
+#   depends_on = [ module.eks ]
+#   source = "../../../resources/argocd"
+
+#   environment = local.environment
+#   region = local.region
+# }
