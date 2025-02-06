@@ -1,0 +1,10 @@
+# variable "argocd_service_type" {
+#   type        = string
+#   default     = "LoadBalancer"
+# }
+
+# variable "eks_cluster_name" {
+#   description = "Name of the EKS cluster"
+#   type        = string
+#   default = "prod-eu-west-1-ze-eks"
+# }

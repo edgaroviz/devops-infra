@@ -35,6 +35,6 @@ module "eks" {
 #   depends_on = [ module.eks ]
 #   source = "../../../resources/argocd"
 
-#   environment = local.environment
-#   region = local.region
+# #   environment = local.environment
+# #   region = local.region
 # }

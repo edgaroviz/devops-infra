@@ -257,5 +257,5 @@ jobs:
               --from-literal=username=argocd-private-repo \
               --from-literal=password=${{ secrets.PAT_GITHUB }} \
               --type Opaque
-            kubectl label secret argocd-repo-secret -n argocd argocd.argoproj.io/secret-type=repository --overwrite
+            kubectl label secret argocd-counter-service-repo -n argocd argocd.argoproj.io/secret-type=repository --overwrite
           fi

@@ -2,7 +2,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.31"
 
-  cluster_name    = "${var.environment}-${var.region}-ze-eks"
+  cluster_name    = "ze-${var.environment}-${var.region}-eks"
   cluster_version = "1.31"
 
   # Optional
@@ -20,7 +20,6 @@ module "eks" {
   }
 
   vpc_id     = var.vpc_id
-  # subnet_ids = ["subnet-abcde012", "subnet-bcde012a", "subnet-fghi345a"]
   subnet_ids = var.subnet_ids
 
   tags = {
