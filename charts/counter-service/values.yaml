@@ -1,10 +1,8 @@
 replicaCount: "1"
 env: "dev"
 image:
-
-  tag: "00352468d45a445bf56dc222cd496a6090826c2b"
+  tag: "db4e446adec85fa1d2927de4d9af30f60644a297"
   repository-uri: "920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze-my-ecr"
-
 resources:
   requests:
     memory: "500Mi"
