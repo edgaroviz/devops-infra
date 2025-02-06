@@ -1,0 +1,46 @@
+name: Create App Infra 
+
+on:
+  workflow_dispatch:
+
+jobs:
+  Terraform-init-validate-plan-apply:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::920373021859:role/ze-my-admin-role
+          aws-region: eu-west-1
+          role-session-name: APIActions
+          role-duration-seconds: 3600
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+
+      - name: Terraform Destroy for all environments and regions (User Confirmation Required)
+        run: |
+          echo "⚠️ WARNING: You are about to DESTROY all Terraform resources."
+          for env in tf-infra/env/*; do
+            echo "Destroying Terraform resources in $env"
+            for region in "$env"*/; do
+              terraform -chdir=$region destroy -auto-approve
+              echo "Destroyed Terraform resources at $region"
+            done
+            echo "Completed destroy for $env"
+          done
+          else
+            echo "❌ Terraform destroy cancelled."
+            exit 1
+          fi

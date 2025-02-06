@@ -1,101 +1,11 @@
-name: Verify/Create S3, ECR and apply infra config
+name: Create App Infra 
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-      # - application+action-refinement
 
 jobs:
-  S3_bucket_verification:
-    runs-on: ubuntu-latest
-    outputs:
-      s3_skip: ${{ steps.s3_check.outputs.s3_skip }}
-    steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
-
-      - name: S3 Bucket Verification
-        id: s3_check
-        run: |
-          if aws s3api head-bucket --bucket ze-my-bucket 2>/dev/null; then
-              echo "s3_skip=true" >> $GITHUB_OUTPUT
-          else
-              echo "s3_skip=false" >> $GITHUB_OUTPUT
-          fi
-
-  S3_bucket_creation:
-    runs-on: ubuntu-latest
-    outputs:
-      create: true
-    needs: S3_bucket_verification
-    if: needs.S3_bucket_verification.outputs.s3_skip == 'false'
-    permissions:
-      contents: 'write'
-      id-token: 'write'
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
-
-      - name: Create S3 Bucket
-        run: |
-          echo $(pwd)
-          cd tf-infra/resources/s3-bucket
-          terraform init
-          terraform plan
-          echo "reached tf apply"
-
-  ECR_creation:
-    runs-on: ubuntu-latest
-    outputs:
-      ecr_create: true
-    permissions:
-      contents: 'write'
-      id-token: 'write'
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
-      
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.10.5
-
-      - name: Create AWS ECR
-        run: |
-          echo $(pwd)
-          cd tf-infra/resources/ecr
-          terraform init
-          terraform plan
-          terraform apply --auto-approve
-
   Terraform-init-validate-plan-apply:
     runs-on: ubuntu-latest
-    # needs: [S3_bucket_verification, S3_bucket_creation, ECR_verification, ECR_creation]
-    needs: [S3_bucket_verification, S3_bucket_creation, ECR_creation]
-    if: always()
-    # if: needs.ECR_verification.outputs.ecr_skip == 'true'
     permissions:
       contents: 'write'
       id-token: 'write'
@@ -106,19 +16,20 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::920373021859:role/ze-my-admin-role
           aws-region: eu-west-1
+          role-session-name: APIActions
+          role-duration-seconds: 3600
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.10.5
 
-      - name: Terraform infra init, validate and apply for all environments and regions
+      - name: Terraform infra init, validate for all environments and regions
         run: |
           for env in tf-infra/env/*; do
             echo "Terraform init, valite and plan in $env"
@@ -130,7 +41,7 @@ jobs:
             done
           done
 
-      - name: Terraform infra init, validate and apply for all environments and regions
+      - name: Terraform infra apply for all environments and regions
         run: |
           for env in tf-infra/env/*; do
             echo "Terraform plan in $env"
@@ -160,65 +71,6 @@ jobs:
   #         issue-title: "Manual Approval Required for Terraform Apply"
   #         issue-body: "Please approve or deny the deployment."
 
-#   terraform-apply:
-#     runs-on: ubuntu-latest
-#     needs: Terraform-init-validate-plan
-#     if: always()
-#     permissions:
-#       id-token: write
-#       contents: read
-
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-#         with:
-#           persist-credentials: false
-
-#       - name: Configure AWS credentials
-#         uses: aws-actions/configure-aws-credentials@v3
-#         with:
-#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           aws-region: eu-west-1
-
-#       - name: Install Terraform
-#         uses: hashicorp/setup-terraform@v3
-#         with:
-#           terraform_version: 1.10.5
-
-#       - name: Terraform Apply for all environments and regions
-#         run: |
-#           echo "⚠️ WARNING: You are about to APPLY Terraform changes."
-#           for env in tf-infra/env/*; do
-#             echo "Applying terraform in $env"
-#             for region in "$env"/*; do
-#               terraform -chdir=$region init
-#               terraform -chdir=$region apply -auto-approve
-#               echo "Applied changes at $region"
-#             echo "Initialized and validated changes at $env"
-#             done
-#           done
-
-
-# - name: Terraform Destroy for all environments and regions (User Confirmation Required)
-#   run: |
-#     echo "⚠️ WARNING: You are about to DESTROY all Terraform resources."
-#     echo "Type 'destroy' to proceed, or any other key to cancel:"
-#     read confirmation
-#     if [[ "$confirmation" == "destroy" ]]; then
-#       for env in tf-infra/env/*; do
-#         echo "Destroying Terraform resources in $env"
-#         for region in "$env"*/; do
-#           terraform -chdir=$region destroy -auto-approve
-#           echo "Destroyed Terraform resources at $region"
-#         done
-#         echo "Completed destroy for $env"
-#       done
-#     else
-#       echo "❌ Terraform destroy cancelled."
-#       exit 1
-#     fi
-
   Argo_installation:
     needs: [Terraform-init-validate-plan-apply]
     if: always()
@@ -229,12 +81,13 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::920373021859:role/ze-my-admin-role
           aws-region: eu-west-1
+          role-session-name: APIActions
+          role-duration-seconds: 3600
 
       - uses: azure/setup-helm@v4.2.0
         with:
