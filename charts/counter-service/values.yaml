@@ -1,9 +1,8 @@
 replicaCount: "1"
 environment: "dev"
 image:
-  tag: "latest"
+  tag: "d7c9dff927a3c98c7d459b7381b1460dc6f6fb96"
   repository-uri: "920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze-my-ecr"
-
 resources:
   requests:
     memory: "500Mi"
@@ -11,5 +10,3 @@ resources:
   limits:
     memory: "1GB"
     cpu: "1"
-
-

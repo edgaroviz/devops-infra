@@ -27,6 +27,7 @@ spec:
           value: "80"
         # - name: REQUEST_LIMIT
         #   value: "1000"  # Example environment variable for rate limiting
+
         resources:
           requests:
             cpu: {{ .Values.resources.requests.cpu }}

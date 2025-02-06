@@ -1,26 +1,25 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: "counter-service"
+  name: "counter-app"
   namespace: argocd
 spec:
   project: devops-infra
   destination:
-    namespace: counter-service-app
+    namespace: counter-app
     server: https://kubernetes.default.svc
   source:
     helm:
       releaseName: counter-service
       version: v3
-      # valueFiles:
-      #     - values.yaml
+      valueFiles:
+          - values.yaml
     path: ../../charts/counter-service
     repoURL: git@github.com:edgaroviz/devops-infra
-    targetRevision: feature-argocd-method-change
+    targetRevision: master
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      selfHeal: true
+      prune: false
