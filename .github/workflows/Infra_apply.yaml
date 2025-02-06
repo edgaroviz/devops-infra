@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      # - application+action-refinement
 
 jobs:
   S3_bucket_verification:

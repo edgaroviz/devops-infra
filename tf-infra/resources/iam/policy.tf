@@ -1,5 +1,5 @@
-resource "aws_iam_policy" "ecr_policy" {
-  name        = "ECRpush-only_for-ze-my-ecr "
+resource "aws_iam_policy" "ze_my_ecr_policy" {
+  name        = "ze_my_ecr_policy"
   description = "IAM policy for accessing ECR repository"
 
   policy = jsonencode({
@@ -23,7 +23,7 @@ resource "aws_iam_policy" "ecr_policy" {
 }
 
 resource "aws_iam_policy" "ze_my_admin_policy" {
-  name        = "AdminPolicy"
+  name        = "ze_my_admin_policy"
   description = "Fine-grained policy granting access to manage S3, VPC, EKS, and IAM resources with Terraform."
 
   policy = jsonencode({
