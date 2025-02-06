@@ -26,8 +26,31 @@ resource "aws_iam_role" "ze_my_ecr_role" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "ze_my_ecr_role_attach" {
+resource "aws_iam_role_policy_attachment" "ze_my_ecr_role_attachment" {
   depends_on = [ aws_iam_role.ze_my_ecr_role ]
   role       = aws_iam_role.ze_my_ecr_role.name
   policy_arn = aws_iam_policy.ecr_policy.arn
+}
+
+resource "aws_iam_role" "ze_my_admin_role" {
+  name = "AdminRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          AWS = "arn:aws:iam::YOUR_ACCOUNT_ID:root"
+        },
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ze_my_admin_role_attachment" {
+  depends_on = [ aws_iam_role.ze_my_admin_role ]
+  role       = aws_iam_role.ze_my_admin_role.name
+  policy_arn = aws_iam_policy.ze_my_admin_policy.arn
 }

@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - master
-      - feature-git-actions-testing
 
 jobs:
   S3_bucket_verification:
@@ -58,38 +57,10 @@ jobs:
           terraform plan
           echo "reached tf apply"
 
-  # ECR_verification:
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     ecr_skip: ${{ steps.ecr_check.outputs.ecr_skip }}
-  #   needs: [S3_bucket_verification, S3_bucket_creation]
-  #   if: always()
-  #   steps:
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v3
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: eu-west-1
-
-      # - name: ECR Verification
-      #   id: ecr_check
-      #   run: |
-      #     repo_name="ze-my-ecr"
-      #     region="eu-west-1"
-
-      #     if aws ecr describe-repositories --repository-names "$repo_name" --region "$region" 2>/dev/null; then
-      #         echo "ecr_skip=true" >> $GITHUB_OUTPUT
-      #     else
-      #         echo "ecr_skip=false" >> $GITHUB_OUTPUT
-      #     fi
-
   ECR_creation:
     runs-on: ubuntu-latest
     outputs:
       ecr_create: true
-    # needs: ECR_verification
-    # if: needs.ECR_verification.outputs.ecr_skip == 'false'
     permissions:
       contents: 'write'
       id-token: 'write'
@@ -118,7 +89,7 @@ jobs:
           terraform plan
           terraform apply --auto-approve
 
-  Terraform-init-validate-plan:
+  Terraform-init-validate-plan-apply:
     runs-on: ubuntu-latest
     # needs: [S3_bucket_verification, S3_bucket_creation, ECR_verification, ECR_creation]
     needs: [S3_bucket_verification, S3_bucket_creation, ECR_creation]
@@ -146,16 +117,26 @@ jobs:
         with:
           terraform_version: 1.10.5
 
-      - name: Terraform init, validate and plan for all environments and regions
+      - name: Terraform infra init, validate and apply for all environments and regions
         run: |
           for env in tf-infra/env/*; do
             echo "Terraform init, valite and plan in $env"
             for region in "$env"/*; do
-              terraform -chdir=$region init
-              terraform -chdir=$region validate
-              terraform -chdir=$region plan
-              echo "Applied changes at $region"
-            echo "Initialized and validated changes at $env"
+              terraform -chdir=$region/infra init
+              terraform -chdir=$region/infra validate
+              echo "Initialized and validated changes at region: $region"
+            echo "Initialized and validated changes at envrionemnt: $env"
+            done
+          done
+
+      - name: Terraform infra init, validate and apply for all environments and regions
+        run: |
+          for env in tf-infra/env/*; do
+            echo "Terraform plan in $env"
+            for region in "$env"/*; do
+              terraform -chdir=$region/infra apply -auto-approve
+              echo "Applied changes at region: $region"
+            echo "Applied changes at environment: $env"
             done
           done
 
@@ -178,44 +159,45 @@ jobs:
   #         issue-title: "Manual Approval Required for Terraform Apply"
   #         issue-body: "Please approve or deny the deployment."
 
-  terraform-apply:
-    runs-on: ubuntu-latest
-    needs: Terraform-init-validate-plan
-    if: always()
-    permissions:
-      id-token: write
-      contents: read
+#   terraform-apply:
+#     runs-on: ubuntu-latest
+#     needs: Terraform-init-validate-plan
+#     if: always()
+#     permissions:
+#       id-token: write
+#       contents: read
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+#         with:
+#           persist-credentials: false
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v3
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: eu-west-1
 
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.10.5
+#       - name: Install Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.10.5
 
-      - name: Terraform Apply for all environments and regions
-        run: |
-          echo "⚠️ WARNING: You are about to APPLY Terraform changes."
-          for env in tf-infra/env/*; do
-            echo "Applying terraform in $env"
-            for region in "$env"/*; do
-              terraform -chdir=$region init
-              terraform -chdir=$region apply -auto-approve
-              echo "Applied changes at $region"
-            echo "Initialized and validated changes at $env"
-            done
-          done
+#       - name: Terraform Apply for all environments and regions
+#         run: |
+#           echo "⚠️ WARNING: You are about to APPLY Terraform changes."
+#           for env in tf-infra/env/*; do
+#             echo "Applying terraform in $env"
+#             for region in "$env"/*; do
+#               terraform -chdir=$region init
+#               terraform -chdir=$region apply -auto-approve
+#               echo "Applied changes at $region"
+#             echo "Initialized and validated changes at $env"
+#             done
+#           done
+
 
 # - name: Terraform Destroy for all environments and regions (User Confirmation Required)
 #   run: |
@@ -236,51 +218,46 @@ jobs:
 #       exit 1
 #     fi
 
-  # Argo_installation:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         persist-credentials: false
+  Argo_installation:
+    needs: [Terraform-init-validate-plan-apply]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v3
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: eu-west-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
 
-  #     - uses: azure/setup-helm@v4.2.0
-  #       with:
-  #         version: 'latest'
+      - uses: azure/setup-helm@v4.2.0
+        with:
+          version: 'latest'
 
-  #     # - name: Save cluster info to kube.config file
-  #     #   run: |
-  #     #     for env in $(ls tf-infra/env); do
-  #     #       echo "Adding ${env} to kube config"
-  #     #       aws eks --region eu-west-1 update-kubeconfig --name $env-eu-west-1-ze-eks --kubeconfig ~/.kube/config
-  #     #     done
+      - name: Deploy ArgoCD
+        run: |
+          helm repo add argo https://argoproj.github.io/argo-helm
+          for env in $(ls tf-infra/env); do
+            echo "Adding ${env} to kube config and installing ArgoCD"
+            aws eks --region eu-west-1 update-kubeconfig --name $env-eu-west-1-ze-eks --kubeconfig ~/.kube/config
+            helm upgrade argocd-$env argo/argo-cd -f argocd-values/argocd-values.yaml --namespace argocd --create-namespace --install
+          done
 
-  #     - name: Deploy ArgoCD
-  #       run: |
-  #         helm repo add argo https://argoproj.github.io/argo-helm
-  #         for env in $(ls tf-infra/env); do
-  #           echo "Adding ${env} to kube config and installing ArgoCD"
-  #           aws eks --region eu-west-1 update-kubeconfig --name $env-eu-west-1-ze-eks --kubeconfig ~/.kube/config
-  #           helm upgrade argocd-$env argo/argo-cd -f argocd-values/argocd-values.yaml --namespace argocd --create-namespace --install
-  #         done
-
-  #     - name: Attach repo to ArgoCD
-  #       run: |
-  #         if kubectl get secret argocd-counter-service-repo --namespace argocd &> /dev/null; then
-  #           echo "Secret already exists, skipping creation."
-  #         else
-  #           kubectl create secret generic argocd-counter-service-repo \
-  #             --namespace argocd \
-  #             --from-literal=url=https://github.com/edgaroviz/devops-infra.git \
-  #             --from-literal=username=argocd-private-repo \
-  #             --from-literal=password=${{ secrets.PAT_GITHUB }} \
-  #             --type Opaque
-  #           kubectl label secret argocd-repo-secret -n argocd argocd.argoproj.io/secret-type=repository --overwrite
-  #         fi
+      - name: Attach repo to ArgoCD
+        run: |
+          if kubectl get secret argocd-devops-infra-repo --namespace argocd &> /dev/null; then
+            echo "Secret already exists, skipping creation."
+          else
+            kubectl create secret generic argocd-counter-service-repo \
+              --namespace argocd \
+              --from-literal=url=https://github.com/edgaroviz/devops-infra.git \
+              --from-literal=username=argocd-private-repo \
+              --from-literal=password=${{ secrets.PAT_GITHUB }} \
+              --type Opaque
+            kubectl label secret argocd-counter-service-repo -n argocd argocd.argoproj.io/secret-type=repository --overwrite
+          fi

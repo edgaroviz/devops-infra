@@ -12,14 +12,15 @@ spec:
     helm:
       releaseName: counter-service
       version: v3
-      valueFiles:
-          - values.yaml
+      # valueFiles:
+      #     - values.yaml
     path: ../../charts/counter-service
     repoURL: git@github.com:edgaroviz/devops-infra
-    targetRevision: master
+    targetRevision: feature-argocd-method-change
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-    selfHeal: true
-    prune: false

@@ -1,5 +1,5 @@
 replicaCount: "1"
-env: "dev"
+environment: "dev"
 image:
   tag: "d7c9dff927a3c98c7d459b7381b1460dc6f6fb96"
   repository-uri: "920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze-my-ecr"
