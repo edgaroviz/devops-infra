@@ -4,6 +4,6 @@ description: "Counter application for GET/POST requests"
 version: 0.1.0
 appVersion: "1.0.0"
 dependencies:
-  - name: counter-service-lib
+  - name: counter-service-app
     version: 0.1.0
     repository: "file://../../../../charts/counter-service-app"

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: counter-service-app-config
-  namespace: counter-service-app
+  name: {{ .Values.appName }}-config
+  namespace: {{ .Values.appName }}
 data:
   env: {{ .Values.env }}

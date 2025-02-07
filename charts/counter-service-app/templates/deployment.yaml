@@ -1,33 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: counter-service-app
-  namespace: counter-service-app
+  name: {{ .Values.appName }}
+  namespace: {{ .Values.appName }}
   labels:
-    app: counter-service-app
+    app: {{ .Values.appName }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: counter-service-app
+      app: {{ .Values.appName }}
   template:
     metadata:
       labels:
-        app: counter-service-app
+        app: {{ .Values.appName }}
     spec:
       containers:
-      - name: counter-service-app
+      - name: {{ .Values.appName }}
         image: {{ .Values.image.repository-uri }}:{{ .Values.image.tag }}
+        envFrom:
+          - configMapRef:
+            name: {{ .Values.appName }}
         ports:
         - containerPort: 80
-        # env:
-        - name: ENV
-          value: {{ .Values.environment }}
-        - name: APP_PORT
-          value: "80"
-        # - name: REQUEST_LIMIT
-        #   value: "1000"  # Example environment variable for rate limiting
-
+          protocol: TCP
         resources:
           requests:
             cpu: {{ .Values.resources.requests.cpu }}
@@ -35,15 +31,3 @@ spec:
           limits:
             cpu: {{ .Values.resources.limits.cpu }}
             memory: {{ .Values.resources.limits.memory }}
-        # livenessProbe:
-        #   httpGet:
-        #     path: /stats
-        #     port: 80
-          # initialDelaySeconds: 5
-          # periodSeconds: 10
-        # readinessProbe:
-        #   httpGet:
-        #     path: /stats
-        #     port: 80
-        #   initialDelaySeconds: 3
-        #   periodSeconds: 5

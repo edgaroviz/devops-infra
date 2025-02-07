@@ -1,3 +1,4 @@
+appName: "counter-service-app"
 replicaCount: "1"
 environment: "dev"
 image:
