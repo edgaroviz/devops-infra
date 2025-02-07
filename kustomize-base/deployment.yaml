@@ -20,5 +20,5 @@ spec:
             - configMapRef:
                 name: counter-service-config
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               protocol: TCP
