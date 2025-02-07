@@ -5,8 +5,8 @@ image:
   repository-uri: "920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze_my_ecr"
 resources:
   requests:
-    memory: "500Mi"
-    cpu: "500m"
+    memory: "1"
+    cpu: "1GB"
   limits:
-    memory: "1GB"
-    cpu: "1"
+    memory: "2GB"
+    cpu: "2"
