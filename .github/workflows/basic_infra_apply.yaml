@@ -53,6 +53,11 @@ jobs:
           role-session-name: APIActions
           role-duration-seconds: 3600
 
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+
       - name: Create S3 Bucket
         run: |
           echo $(pwd)
@@ -62,8 +67,8 @@ jobs:
 
   ECR_creation:
     runs-on: ubuntu-latest
-    outputs:
-      ecr_create: true
+    needs: [ S3_bucket_verification, S3_bucket_creation ]
+    if: always()
 
     steps:
       - name: Checkout repository
