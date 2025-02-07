@@ -1,5 +1,5 @@
-resource "aws_s3_bucket" "ze_my_bucket" {
-  bucket = "ze_my_bucket"
+resource "aws_s3_bucket" "ze-my-bucket" {
+  bucket = "ze-my-bucket"
   force_destroy = true
   tags = {
     remote_state        = "true"

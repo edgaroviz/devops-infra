@@ -28,7 +28,7 @@ jobs:
       - name: S3 Bucket Verification
         id: s3_check
         run: |
-          if aws s3api head-bucket --bucket ze_my_bucket 2>/dev/null; then
+          if aws s3api head-bucket --bucket ze-my-bucket 2>/dev/null; then
               echo "s3_skip=true" >> $GITHUB_OUTPUT
           else
               echo "s3_skip=false" >> $GITHUB_OUTPUT
