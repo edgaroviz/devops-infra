@@ -14,18 +14,18 @@ spec:
         app: counter-service
     spec:
       containers:
-      - name: counter-service
-        image: 920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze_my_ecr:91dd32ec66e1e6675a592fd198f0d2290316a76d
-        envFrom:
-          - configMapRef:
-              name: counter-service-config
-        ports:
-        - containerPort: 80
-          protocol: TCP
-        resources:
-          requests:
-            cpu: "250m"
-            memory: "512Mi"
-          limits:
-            cpu: "500m"
-            memory: "1Gi"
+        - name: counter-service
+          image: :d9f0ef175c15e5849a542a2c41d553ecf365c100
+          envFrom:
+            - configMapRef:
+                name: counter-service-config
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
