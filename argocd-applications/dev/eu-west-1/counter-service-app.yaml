@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: "counter-service-app"
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    namespace: counter-service-app
+    server: https://kubernetes.default.svc
+  source:
+    helm:
+      releaseName: counter-service-app
+      version: v3
+      valueFiles:
+        - values.yaml
+    path: live/dev/eu-west-1/counter-service-app
+    repoURL: git@github.com:edgaroviz/devops-infra
+    targetRevision: master
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      selfHeal: true
+      prune: false
