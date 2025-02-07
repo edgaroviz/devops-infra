@@ -5,11 +5,16 @@ on:
     branches:
       - master
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   S3_bucket_verification:
     runs-on: ubuntu-latest
     outputs:
       s3_skip: ${{ steps.s3_check.outputs.s3_skip }}
+    
 
     steps:
       - name: Configure AWS credentials using OIDC
@@ -35,9 +40,6 @@ jobs:
       create: true
     needs: S3_bucket_verification
     if: needs.S3_bucket_verification.outputs.s3_skip == 'false'
-    permissions:
-      contents: 'write'
-      id-token: 'write'
 
     steps:
       - name: Checkout repository
@@ -56,16 +58,12 @@ jobs:
           echo $(pwd)
           cd tf-infra/resources/s3-bucket
           terraform init
-          terraform plan
           terraform apply -auto-approve
 
   ECR_creation:
     runs-on: ubuntu-latest
     outputs:
       ecr_create: true
-    permissions:
-      contents: 'write'
-      id-token: 'write'
 
     steps:
       - name: Checkout repository
@@ -89,5 +87,4 @@ jobs:
           echo $(pwd)
           cd tf-infra/resources/ecr
           terraform init
-          terraform plan
           terraform apply -auto-approve

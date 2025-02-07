@@ -3,12 +3,13 @@ name: Create App Infra
 on:
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   Terraform-init-validate-plan-apply:
     runs-on: ubuntu-latest
-    permissions:
-      contents: 'write'
-      id-token: 'write'
 
     steps:
       - name: Checkout repository
