@@ -16,7 +16,7 @@ spec:
         - values.yaml
     path: live/dev/eu-west-1/counter-service-app
     repoURL: git@github.com:edgaroviz/devops-infra
-    targetRevision: master
+    targetRevision: argo-app-fix
   syncPolicy:
     syncOptions:
       - ServerSideApply=true
