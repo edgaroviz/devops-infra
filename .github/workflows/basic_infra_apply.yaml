@@ -1,7 +1,6 @@
 name: Verify/Create IAM, S3 and ECR
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - master
@@ -9,7 +8,6 @@ on:
 jobs:
   S3_bucket_verification:
     runs-on: ubuntu-latest
-    needs: IAM_resources_creation
     outputs:
       s3_skip: ${{ steps.s3_check.outputs.s3_skip }}
 
