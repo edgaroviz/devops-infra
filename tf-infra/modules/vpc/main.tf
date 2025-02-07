@@ -18,7 +18,9 @@ module "vpc" {
 
   enable_vpn_gateway = false
   enable_ipv6        = false
-
+  private_subnet_tags = {
+    kubernetes.io/role/internal-elb = 1
+  }
   tags = {
     Terraform = "true"
     Environment = var.environment
