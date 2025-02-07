@@ -11,7 +11,7 @@ spec:
   source:
     path: live/dev/eu-west-1
     repoURL: git@github.com:edgaroviz/devops-infra
-    targetRevision: argo-app-fix
+    targetRevision: master
     # kustomize:
     #   namePrefix: counter-service-
   syncPolicy:
