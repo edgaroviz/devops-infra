@@ -1,0 +1,13 @@
+appName: "counter-service"
+replicaCount: "1"
+environment: "dev"
+image:
+  tag: "91dd32ec66e1e6675a592fd198f0d2290316a76d"
+  repository: "920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze_my_ecr"
+resources:
+  requests:
+    memory: "500Mi"
+    cpu: "500m"
+  limits:
+    memory: "1GB"
+    cpu: "1"
