@@ -98,7 +98,7 @@ jobs:
           helm repo add argo https://argoproj.github.io/argo-helm
           for env in $(ls tf-infra/env); do
             echo "Adding ${env} to kube config and installing ArgoCD"
-            aws eks --region eu-west-1 update-kubeconfig --name $env-eu-west-1-ze-eks --kubeconfig ~/.kube/config
+            aws eks --region eu-west-1 update-kubeconfig --name ze-$env-eu-west-1-eks --kubeconfig ~/.kube/config
             helm upgrade argocd-$env argo/argo-cd -f argocd-values/argocd-values.yaml --namespace argocd --create-namespace --install
           done
 

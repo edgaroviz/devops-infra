@@ -1,5 +1,5 @@
-resource "aws_ecr_repository" "ze-my-ecr" {
-  name                 = "ze-my-ecr"
+resource "aws_ecr_repository" "ze_my_ecr" {
+  name                 = "ze_my_ecr"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {

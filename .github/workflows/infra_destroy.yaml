@@ -1,4 +1,4 @@
-name: Create App Infra 
+name: Destroy all Infra 
 
 on:
   workflow_dispatch:
@@ -44,3 +44,15 @@ jobs:
             echo "❌ Terraform destroy cancelled."
             exit 1
           fi
+
+      - name: Create AWS ECR
+        run: |
+          echo $(pwd)
+          cd tf-infra/resources/ecr
+          terraform destroy -auto-approve
+
+      - name: Destroy S3 Bucket
+        run: |
+          echo $(pwd)
+          cd tf-infra/resources/s3-bucket
+          terraform destroy -auto-approve
