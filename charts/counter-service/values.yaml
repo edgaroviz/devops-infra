@@ -1,7 +1,7 @@
 replicaCount: "1"
 environment: "dev"
 image:
-  tag: "c37a59c9516c229f089ce5d5db499562634e5576"
+  tag: "c73474f6da05b5abd88907cca8ffb7981d651c45"
   repository-uri: "920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze_my_ecr"
 resources:
   requests:
