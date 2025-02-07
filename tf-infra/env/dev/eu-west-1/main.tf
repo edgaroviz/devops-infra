@@ -1,5 +1,5 @@
 module "vpc" {
-  source = "../../../modules/vpc"
+  source = "../../../../modules/vpc"
 
   region = local.region
   
@@ -23,7 +23,7 @@ output "public_subnet_ids" {
 
 module "eks" {
   depends_on = [ module.vpc ]
-  source = "../../../modules/eks"
+  source = "../../../../modules/eks"
 
   environment = local.environment
   vpc_id = module.vpc.vpc_id

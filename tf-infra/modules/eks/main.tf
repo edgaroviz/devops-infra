@@ -13,8 +13,20 @@ module "eks" {
   cluster_upgrade_policy = {
     support_type = "STANDARD"
   }
+
+  # eks_managed_node_groups = {
+  #   general-purpose = {
+  #     min_size     = 1
+  #     max_size     = 3
+  #     desired_size = 1
+  #     instance_types = ["t3.medium"]
+  #   }
+  # }
   create_kms_key = false
-  cloudwatch_log_group_enabled = false
+  cluster_encryption_config = {}
+
+  # Disable CloudWatch logging
+  cluster_enabled_log_types = []
 
   cluster_compute_config = {
     enabled    = true
