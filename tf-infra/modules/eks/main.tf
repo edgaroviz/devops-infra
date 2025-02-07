@@ -13,6 +13,8 @@ module "eks" {
   cluster_upgrade_policy = {
     support_type = "STANDARD"
   }
+  create_kms_key = false
+  cloudwatch_log_group_enabled = false
 
   cluster_compute_config = {
     enabled    = true
