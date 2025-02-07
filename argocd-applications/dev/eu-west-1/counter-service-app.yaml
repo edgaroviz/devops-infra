@@ -1,25 +1,48 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: "counter-service-app"
+  name: "counter-service"
   namespace: argocd
 spec:
   project: default
   destination:
-    namespace: counter-service-app
+    namespace: counter-service
     server: https://kubernetes.default.svc
   source:
-    helm:
-      releaseName: counter-service-app
-      version: v3
-      valueFiles:
-        - values.yaml
-    path: live/dev/eu-west-1/counter-service-app
+    path: live/dev/eu-west-1
     repoURL: git@github.com:edgaroviz/devops-infra
-    targetRevision: master
+    targetRevision: argo-app-fix
+    # kustomize:
+    #   namePrefix: counter-service-
   syncPolicy:
     syncOptions:
       - ServerSideApply=true
     automated:
       selfHeal: true
       prune: true
+
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: "counter-service"
+#   namespace: argocd
+# spec:
+#   project: default
+#   destination:
+#     namespace: counter-service
+#     server: https://kubernetes.default.svc
+#   source:
+#     helm:
+#       releaseName: counter-service
+#       version: v3
+#       valueFiles:
+#         - values.yaml
+#     path: live/dev/eu-west-1/counter-service
+#     repoURL: git@github.com:edgaroviz/devops-infra
+#     targetRevision: argo-app-fix
+#   syncPolicy:
+#     syncOptions:
+#       - ServerSideApply=true
+#     automated:
+#       selfHeal: true
+#       prune: true

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: {{ .Values.appName }}
-        image: {{ .Values.image.repository-uri }}:{{ .Values.image.tag }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         envFrom:
           - configMapRef:
             name: {{ .Values.appName }}

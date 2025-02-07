@@ -1,9 +1,9 @@
-appName: "counter-service-app"
+appName: "counter-service"
 replicaCount: "1"
 environment: "dev"
 image:
   tag: "91dd32ec66e1e6675a592fd198f0d2290316a76d"
-  repository-uri: "920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze_my_ecr"
+  repository: "920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze_my_ecr"
 resources:
   requests:
     memory: "500Mi"
