@@ -15,7 +15,7 @@ jobs:
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_policy
+          role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_role
           aws-region: eu-west-1
           role-session-name: APIActions
           role-duration-seconds: 3600
@@ -46,7 +46,7 @@ jobs:
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_policy
+          role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_role
           aws-region: eu-west-1
           role-session-name: APIActions
           role-duration-seconds: 3600
@@ -74,7 +74,7 @@ jobs:
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_policy
+          role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_role
           aws-region: eu-west-1
           role-session-name: APIActions
           role-duration-seconds: 3600
