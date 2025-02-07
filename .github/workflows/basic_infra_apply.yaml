@@ -1,0 +1,96 @@
+name: Verify/Create IAM, S3 and ECR
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      # - application+action-refinement
+
+jobs:
+  S3_bucket_verification:
+    runs-on: ubuntu-latest
+    needs: IAM_resources_creation
+    outputs:
+      s3_skip: ${{ steps.s3_check.outputs.s3_skip }}
+
+    steps:
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_policy
+          aws-region: eu-west-1
+          role-session-name: APIActions
+          role-duration-seconds: 3600
+
+      - name: S3 Bucket Verification
+        id: s3_check
+        run: |
+          if aws s3api head-bucket --bucket ze_my_bucket 2>/dev/null; then
+              echo "s3_skip=true" >> $GITHUB_OUTPUT
+          else
+              echo "s3_skip=false" >> $GITHUB_OUTPUT
+          fi
+
+  S3_bucket_creation:
+    runs-on: ubuntu-latest
+    outputs:
+      create: true
+    needs: S3_bucket_verification
+    if: needs.S3_bucket_verification.outputs.s3_skip == 'false'
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_policy
+          aws-region: eu-west-1
+          role-session-name: APIActions
+          role-duration-seconds: 3600
+
+      - name: Create S3 Bucket
+        run: |
+          echo $(pwd)
+          cd tf-infra/resources/s3-bucket
+          terraform init
+          terraform plan
+          terraform apply -auto-approve
+
+  ECR_creation:
+    runs-on: ubuntu-latest
+    outputs:
+      ecr_create: true
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_policy
+          aws-region: eu-west-1
+          role-session-name: APIActions
+          role-duration-seconds: 3600
+      
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+
+      - name: Create AWS ECR
+        run: |
+          echo $(pwd)
+          cd tf-infra/resources/ecr
+          terraform init
+          terraform plan
+          terraform apply -auto-approve

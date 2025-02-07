@@ -7,7 +7,7 @@ terraform {
   }
   backend "s3" {
     bucket = "ze_my_bucket"
-    key    = "tf-infra/env/prod/eu-west-1/terraform.tfstate"
+    key    = "tf-infra/resources/iam/terraform.tfstate"
     region = "eu-west-1"
   }
 }

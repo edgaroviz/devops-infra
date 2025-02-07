@@ -1,5 +1,44 @@
-resource "aws_iam_policy" "ecr_policy" {
-  name        = "ECRpush-only_for-ze-my-ecr "
+resource "aws_iam_policy" "ze_my_iam_policy" {
+  name        = "ze_my_iam_policy"
+  description = "IAM policy for accessing ECR repository"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = [
+          "iam:CreatePolicy",
+          "iam:DeletePolicy",
+          "iam:GetPolicy",
+          "iam:ListPolicies",
+          "iam:CreateRole",
+          "iam:DeleteRole",
+          "iam:GetRole",
+          "iam:AttachRolePolicy",
+          "iam:DetachRolePolicy",
+          "iam:CreateOpenIDConnectProvider",
+          "iam:DeleteOpenIDConnectProvider",
+          "iam:GetOpenIDConnectProvider"
+        ],
+      },
+      {
+        Effect   = "Allow",
+        Action   = [
+          "s3:CreateBucket",
+          "s3:DeleteBucket",
+          "s3:GetBucketLocation",
+          "s3:ListBucket",
+          "s3:PutBucketPolicy",
+          "s3:GetBucketPolicy"
+        ]
+        Resource = "*"
+      }
+      ]
+  })
+}
+resource "aws_iam_policy" "ze_my_ecr_policy" {
+  name        = "ze_my_ecr_policy"
   description = "IAM policy for accessing ECR repository"
 
   policy = jsonencode({
@@ -15,32 +54,29 @@ resource "aws_iam_policy" "ecr_policy" {
           "ecr:InitiateLayerUpload",
           "ecr:PutImage",
           "ecr:UploadLayerPart"
+        ],
+      },
+      {
+        Effect   = "Allow",
+        Action   = [
+          "s3:GetBucketLocation",
+          "s3:ListBucket",
+          "s3:PutBucketPolicy",
+          "s3:GetBucketPolicy"
         ]
-        Resource = "arn:aws:ecr:eu-west-1:920373021859:repository/ze-my-ecr"
+        Resource = "*"
       }
     ]
   })
 }
 
-resource "aws_iam_policy" "ze_my_admin_policy" {
-  name        = "AdminPolicy"
+resource "aws_iam_policy" "ze_my_eks_policy" {
+  name        = "ze_my_eks_policy"
   description = "Fine-grained policy granting access to manage S3, VPC, EKS, and IAM resources with Terraform."
 
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
-      {
-        Effect   = "Allow",
-        Action   = [
-          "s3:CreateBucket",
-          "s3:DeleteBucket",
-          "s3:GetBucketLocation",
-          "s3:ListBucket",
-          "s3:PutBucketPolicy",
-          "s3:GetBucketPolicy"
-        ],
-        Resource = "*"
-      },
       {
         Effect   = "Allow",
         Action   = [
@@ -70,21 +106,13 @@ resource "aws_iam_policy" "ze_my_admin_policy" {
       {
         Effect   = "Allow",
         Action   = [
-          "iam:CreatePolicy",
-          "iam:DeletePolicy",
-          "iam:GetPolicy",
-          "iam:ListPolicies",
-          "iam:CreateRole",
-          "iam:DeleteRole",
-          "iam:GetRole",
-          "iam:AttachRolePolicy",
-          "iam:DetachRolePolicy",
-          "iam:CreateOpenIDConnectProvider",
-          "iam:DeleteOpenIDConnectProvider",
-          "iam:GetOpenIDConnectProvider"
-        ],
+          "s3:GetBucketLocation",
+          "s3:ListBucket",
+          "s3:PutBucketPolicy",
+          "s3:GetBucketPolicy"
+        ]
         Resource = "*"
-      }
-    ]
+      }    
+      ]
   })
 }
