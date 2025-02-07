@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: counter-service-app
+  namespace: conter-service-app
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-eip-allocations: {{ .Values.loadBalancer.eipAllocation }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: counter-service-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
