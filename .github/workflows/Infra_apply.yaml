@@ -114,8 +114,18 @@ jobs:
               --type Opaque
               kubectl label secret argocd-devops-infra-repo -n argocd argocd.argoproj.io/secret-type=repository --overwrite
               echo "Attached Devops-infra repo to ArgoCD at region: $region"
+            echo "Applied ArgoCD and repository at environment: $env"
+            done
+          done
 
-              kubectl apply -f argocd-applications/$env/$region/counter-service-app.yaml
-            echo "Applied ArgoCD and counter-service application at environment: $env"
+      - name: Deploy ArgoCD and attach repo
+        run: |
+          for env in argocd-applications/*; do
+            echo "ArgoCD app apply in $env"
+            for region in "$env"/*; do
+              aws eks --region $region update-kubeconfig --name ze-$env-$region-eks --kubeconfig ~/.kube/config
+              kubectl apply -f counter-service-app.yaml
+              echo "Deployed counter-service app at region: $region"
+            echo "Deployed counter-service app at environment: $env"
             done
           done
