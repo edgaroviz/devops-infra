@@ -98,27 +98,32 @@ jobs:
         run: |
           helm repo add argo https://argoproj.github.io/argo-helm
           for env in tf-infra/env/*; do
-            echo "ArgoCD installation in $env"
-            for region in "$env"/*; do
-              aws eks --region $region update-kubeconfig --name ze-$env-$region-eks --kubeconfig ~/.kube/config
-              terraform -chdir=$region/argocd init
-              terraform -chdir=$region/argocd apply -auto-approve
-              echo "Deployed ArgoCD at region: $region"
+              echo "ArgoCD installation in $env"
+              for region_path in "$env"/*; do
+                  # Extract the actual region name from the path
+                  region=$(basename "$region_path")
+                  echo "Deploying ArgoCD in region: $region"
+                  aws eks --region "$region" update-kubeconfig --name ze-${env##*/}-$region-eks --kubeconfig ~/.kube/config
+                  terraform -chdir="$region_path/argocd" init
+                  terraform -chdir="$region_path/argocd" apply -auto-approve
+                  echo "Deployed ArgoCD at region: $region"
 
-              kubectl create secret generic argocd-devops-infra-repo \
-              --namespace argocd \
-              --from-literal=url=git@github.com:edgaroviz/devops-infra.git \
-              --from-literal=name=devops-infra \
-              --from-literal=project=default \
-              --from-file=sshPrivateKey=<(echo -n """{{ secrets.GIT_SSH_KEY }}""")
-              --type Opaque
-              kubectl label secret argocd-devops-infra-repo -n argocd argocd.argoproj.io/secret-type=repository --overwrite
-              echo "Attached Devops-infra repo to ArgoCD at region: $region"
-            echo "Applied ArgoCD and repository at environment: $env"
-            done
+                  kubectl create secret generic argocd-devops-infra-repo \
+                    --namespace argocd \
+                    --from-literal=url=git@github.com:edgaroviz/devops-infra.git \
+                    --from-literal=name=devops-infra \
+                    --from-literal=project=default \
+                    --from-file=sshPrivateKey=<(echo -n "{{ secrets.GIT_SSH_KEY }}" | base64 -w 0) \
+                    --type Opaque
+
+                  kubectl label secret argocd-devops-infra-repo -n argocd argocd.argoproj.io/secret-type=repository --overwrite
+                  echo "Attached Devops-infra repo to ArgoCD at region: $region"
+
+              done
+              echo "Applied ArgoCD and repository at environment: ${env##*/}"
           done
 
-      - name: Deploy ArgoCD and attach repo
+      - name: Deploy counter-service application
         run: |
           for env in argocd-applications/*; do
             echo "ArgoCD app apply in $env"
