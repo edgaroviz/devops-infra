@@ -1,13 +1,14 @@
 name: Verify/Create IAM, S3 and ECR
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
 
 permissions:
   id-token: write
-  contents: write
+  contents: read
 
 jobs:
   S3_bucket_verification:
@@ -60,7 +61,7 @@ jobs:
 
       - name: Create S3 Bucket
         run: |
-          echo $(pwd)
+          echo "Creating bucket"
           cd tf-infra/resources/s3-bucket
           terraform init
           terraform apply -auto-approve
@@ -89,7 +90,124 @@ jobs:
 
       - name: Create AWS ECR
         run: |
-          echo $(pwd)
+          echo "Creating ECR"
           cd tf-infra/resources/ecr
           terraform init
           terraform apply -auto-approve
+
+  Terraform-init-validate-apply:
+    runs-on: ubuntu-latest
+    needs: [ ECR_creation ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_role
+          aws-region: eu-west-1
+          role-session-name: APIActions
+          role-duration-seconds: 3600
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+
+      - name: Terraform infra init, validate for all environments and regions
+        run: |
+          for env in tf-infra/env/*; do
+            echo "Terraform init, valite and plan in $env"
+            for region in "$env"/*; do
+              terraform -chdir=$region/infra init
+              terraform -chdir=$region/infra validate
+              echo "Initialized and validated changes at region: $region"
+            echo "Initialized and validated changes at envrionemnt: $env"
+            done
+          done
+
+      - name: Terraform infra apply for all environments and regions
+        run: |
+          for env in tf-infra/env/*; do
+            echo "Terraform apply in $env"
+            for region in "$env"/*; do
+              terraform -chdir=$region/infra apply -auto-approve
+              echo "Applied changes at region: $region"
+            echo "Applied changes at environment: $env"
+            done
+          done
+
+  Argo_installation:
+    needs: [Terraform-init-validate-apply]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_role
+          aws-region: eu-west-1
+          role-session-name: APIActions
+          role-duration-seconds: 3600
+
+      - uses: azure/setup-helm@v4.2.0
+        with:
+          version: 'latest'
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+
+      - name: Deploy ArgoCD and attach repo
+        run: |
+          helm repo add argo https://argoproj.github.io/argo-helm
+          for env in tf-infra/env/*; do
+              echo "ArgoCD installation in $env"
+              for region_path in "$env"/*; do
+                  region=$(basename "$region_path")
+                  echo "Deploying ArgoCD in region: $region"
+                  aws eks --region "$region" update-kubeconfig --name ze-${env##*/}-$region-eks --kubeconfig ~/.kube/config
+                  terraform -chdir="$region_path/argocd" init
+                  terraform -chdir="$region_path/argocd" apply -auto-approve
+                  echo "Deployed ArgoCD at region: $region"
+
+                  echo "${{ secrets.GIT_SSH_KEY }}" > /tmp/argocd_ssh_key
+                  chmod 600 /tmp/argocd_ssh_key
+                  kubectl create secret generic argocd-devops-infra-repo \
+                    --namespace argocd \
+                    --from-literal=url=git@github.com:edgaroviz/devops-infra.git \
+                    --from-literal=name=devops-infra \
+                    --from-literal=project=default \
+                    --from-file=sshPrivateKey=/tmp/argocd_ssh_key \
+                    --type Opaque
+
+                  kubectl label secret argocd-devops-infra-repo -n argocd argocd.argoproj.io/secret-type=repository --overwrite
+                  echo "Attached Devops-infra repo to ArgoCD at region: $region"
+              done
+              echo "Applied ArgoCD and repository at environment: ${env##*/}"
+          done
+
+      - name: Deploy counter-service application
+        run: |
+          for env in argocd-applications/*; do
+              env_name=$(basename "$env")
+              echo "ArgoCD app apply in $env_name"
+              for region_path in "$env"/*; do
+                  region=$(basename "$region_path")
+                  echo "Deploying counter-service app in region: $region"
+                  aws eks --region "$region" update-kubeconfig --name ze-${env_name}-$region-eks --kubeconfig ~/.kube/config
+                  kubectl apply -f "$region_path/counter-service-app.yaml"
+                  echo "Deployed counter-service app at region: $region"
+              done
+              echo "Deployed counter-service app at environment: $env_name"
+          done

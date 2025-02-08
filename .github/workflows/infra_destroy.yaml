@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  Terraform-init-validate-plan-apply:
+  Terraform-init-validate-destroy:
     runs-on: ubuntu-latest
 
     steps:
@@ -54,10 +54,6 @@ jobs:
             echo "Destroyed all infra at environment: $env"
             done
           done
-          else
-            echo "❌ Terraform destroy cancelled."
-            exit 1
-          fi
 
       - name: Destroy AWS ECR
         run: |
