@@ -105,7 +105,6 @@ jobs:
           for env in tf-infra/env/*; do
               echo "ArgoCD installation in $env"
               for region_path in "$env"/*; do
-                  # Extract the actual region name from the path
                   region=$(basename "$region_path")
                   echo "Deploying ArgoCD in region: $region"
                   aws eks --region "$region" update-kubeconfig --name ze-${env##*/}-$region-eks --kubeconfig ~/.kube/config
@@ -118,7 +117,7 @@ jobs:
                     --from-literal=url=git@github.com:edgaroviz/devops-infra.git \
                     --from-literal=name=devops-infra \
                     --from-literal=project=default \
-                    --from-file=sshPrivateKey=<(echo -n "{{ secrets.GIT_SSH_KEY }}" | base64 -w 0) \
+                    --from-file=sshPrivateKey=<(echo -n """{{ secrets.GIT_SSH_KEY }}""" \
                     --type Opaque
 
                   kubectl label secret argocd-devops-infra-repo -n argocd argocd.argoproj.io/secret-type=repository --overwrite
@@ -131,11 +130,14 @@ jobs:
       - name: Deploy counter-service application
         run: |
           for env in argocd-applications/*; do
-            echo "ArgoCD app apply in $env"
-            for region in "$env"/*; do
-              aws eks --region $region update-kubeconfig --name ze-$env-$region-eks --kubeconfig ~/.kube/config
-              kubectl apply -f counter-service-app.yaml
-              echo "Deployed counter-service app at region: $region"
-            echo "Deployed counter-service app at environment: $env"
-            done
+              env_name=$(basename "$env")
+              echo "ArgoCD app apply in $env_name"
+              for region_path in "$env"/*; do
+                  region=$(basename "$region_path")
+                  echo "Deploying counter-service app in region: $region"
+                  aws eks --region "$region" update-kubeconfig --name ze-${env_name}-$region-eks --kubeconfig ~/.kube/config
+                  kubectl apply -f "$region_path/counter-service-app.yaml"
+                  echo "Deployed counter-service app at region: $region"
+              done
+              echo "Deployed counter-service app at environment: $env_name"
           done
