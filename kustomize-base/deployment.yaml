@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: counter-service
-          image: 920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze_my_ecr:ba4fffe9ebe804edf26bc65f3bb8f5ced7c4bed7
+          image: 920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze_my_ecr:2051a1fa12576faaa05a071d3fb10db66d10e588
           envFrom:
             - configMapRef:
                 name: counter-service-config
