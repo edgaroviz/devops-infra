@@ -1,19 +1,12 @@
 resource "helm_release" "argocd" {
-  name             = "argocd"
-  namespace        = "argocd"
+  repository = "https://argoproj.github.io/argo-helm"
+  chart      = "argo-cd"
+  version    = "7.4.5"
   create_namespace = true
-  repository       = "https://argoproj.github.io/argo-helm"
-  chart            = "argo-cd"
+  name      = "argocd"
+  namespace = "argocd"
 
   values = [
-    <<EOF
-server:
-  service:
-    type: LoadBalancer
-EOF
+    file("${path.module}/values.yaml")
   ]
-}
-
-resource "kubernetes_manifest" "counter-service" {
-  manifest = yamldecode(file("${path.module}/../../../../../argocd-applications/counter-service/counter-service.yaml"))
 }

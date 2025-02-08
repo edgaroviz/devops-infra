@@ -72,47 +72,47 @@ jobs:
   #         issue-title: "Manual Approval Required for Terraform Apply"
   #         issue-body: "Please approve or deny the deployment."
 
-  # Argo_installation:
-  #   needs: [Terraform-init-validate-plan-apply]
-  #   if: always()
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         persist-credentials: false
+  Argo_installation:
+    needs: [Terraform-init-validate-plan-apply]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-  #     - name: Configure AWS credentials using OIDC
-  #       uses: aws-actions/configure-aws-credentials@v3
-  #       with:
-  #         role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_role
-  #         aws-region: eu-west-1
-  #         role-session-name: APIActions
-  #         role-duration-seconds: 3600
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::920373021859:role/ze_my_admin_role
+          aws-region: eu-west-1
+          role-session-name: APIActions
+          role-duration-seconds: 3600
 
-  #     - uses: azure/setup-helm@v4.2.0
-  #       with:
-  #         version: 'latest'
+      - uses: azure/setup-helm@v4.2.0
+        with:
+          version: 'latest'
 
-  #     - name: Deploy ArgoCD
-  #       run: |
-  #         helm repo add argo https://argoproj.github.io/argo-helm
-  #         for env in $(ls tf-infra/env); do
-  #           echo "Adding ${env} to kube config and installing ArgoCD"
-  #           aws eks --region eu-west-1 update-kubeconfig --name ze-$env-eu-west-1-eks --kubeconfig ~/.kube/config
-  #           helm upgrade argocd-$env argo/argo-cd -f argocd-values/argocd-values.yaml --namespace argocd --create-namespace --install
-  #         done
+      - name: Deploy ArgoCD and attach repo
+        run: |
+          helm repo add argo https://argoproj.github.io/argo-helm
+          for env in tf-infra/env/*; do
+            echo "ArgoCD installation in $env"
+            for region in "$env"/*; do
+              aws eks --region $region update-kubeconfig --name ze-$env-$region-eks --kubeconfig ~/.kube/config
+              terraform -chdir=$region/argocd init
+              terraform -chdir=$region/argocd apply -auto-approve
+              echo "Deployed ArgoCD at region: $region"
 
-  #     - name: Attach repo to ArgoCD
-  #       run: |
-  #         if kubectl get secret argocd-devops-infra-repo --namespace argocd &> /dev/null; then
-  #           echo "Secret already exists, skipping creation."
-  #         else
-  #           kubectl create secret generic argocd-counter-service-repo \
-  #             --namespace argocd \
-  #             --from-literal=url=https://github.com/edgaroviz/devops-infra.git \
-  #             --from-literal=username=argocd-private-repo \
-  #             --from-literal=password=${{ secrets.PAT_GITHUB }} \
-  #             --type Opaque
-  #           kubectl label secret argocd-counter-service-repo -n argocd argocd.argoproj.io/secret-type=repository --overwrite
-  #         fi
+              kubectl create secret generic argocd-counter-service-repo \
+              --namespace argocd \
+              --from-literal=url=git@github.com:edgaroviz/devops-infra.git \
+              --from-literal=name=devops-infra \
+              --from-literal=project=default \
+              --from-file=sshPrivateKey=<(echo -n "{{ secrets.GIT_SSH_KEY }}" | base64 -w 0)
+              --type Opaque
+              echo "Attached Devops-infra repo to ArgoCD at region: $region"
+            echo "Applied changes at environment: $env"
+            done
+          done
