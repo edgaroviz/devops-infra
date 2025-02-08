@@ -15,6 +15,8 @@ module "vpc" {
 
   enable_nat_gateway = true
   single_nat_gateway = true
+  enable_flow_log = false
+
 
   enable_vpn_gateway = false
   enable_ipv6        = false
