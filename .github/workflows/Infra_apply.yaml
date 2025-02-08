@@ -45,7 +45,7 @@ jobs:
       - name: Terraform infra apply for all environments and regions
         run: |
           for env in tf-infra/env/*; do
-            echo "Terraform plan in $env"
+            echo "Terraform apply in $env"
             for region in "$env"/*; do
               terraform -chdir=$region/infra apply -auto-approve
               echo "Applied changes at region: $region"
@@ -105,14 +105,17 @@ jobs:
               terraform -chdir=$region/argocd apply -auto-approve
               echo "Deployed ArgoCD at region: $region"
 
-              kubectl create secret generic argocd-counter-service-repo \
+              kubectl create secret generic argocd-devops-infra-repo \
               --namespace argocd \
               --from-literal=url=git@github.com:edgaroviz/devops-infra.git \
               --from-literal=name=devops-infra \
               --from-literal=project=default \
-              --from-file=sshPrivateKey=<(echo -n "{{ secrets.GIT_SSH_KEY }}" | base64 -w 0)
+              --from-file=sshPrivateKey=<(echo -n """{{ secrets.GIT_SSH_KEY }}""")
               --type Opaque
+              kubectl label secret argocd-devops-infra-repo -n argocd argocd.argoproj.io/secret-type=repository --overwrite
               echo "Attached Devops-infra repo to ArgoCD at region: $region"
-            echo "Applied changes at environment: $env"
+
+              kubectl apply -f argocd-applications/$env/$region/counter-service-app.yaml
+            echo "Applied ArgoCD and counter-service application at environment: $env"
             done
           done

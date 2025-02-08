@@ -1,4 +1,4 @@
-name: Destroy all Infra 
+name: Destroy Infra 
 
 on:
   workflow_dispatch:
@@ -30,31 +30,43 @@ jobs:
         with:
           terraform_version: 1.10.5
 
-      - name: Terraform Destroy for all environments and regions (User Confirmation Required)
+      - name: Terraform infra init, validate for all environments and regions - before destroy
         run: |
-          echo "⚠️ WARNING: You are about to DESTROY all Terraform resources."
+          echo "⚠️ WARNING: You are about to DESTROY all Infra resources."
           for env in tf-infra/env/*; do
-            echo "Destroying Terraform resources in $env"
+            echo "Terraform init, valite in $env - before destroy ⚠️"
             for region in "$env"/*; do
               terraform -chdir=$region/infra init
-              terraform -chdir=$region/infra destroy -auto-approve
-              echo "Destroyed Terraform resources at $region"
+              terraform -chdir=$region/infra validate
+              echo "Initialized and validated changes at region: $region  - before destroy ⚠️"
+            echo "Initialized and validated changes at envrionemnt: $env  - before destroy ⚠️"
             done
-            echo "Completed destroy for $env"
+          done
+
+      - name: Terraform infra destroy for all environments and regions
+        run: |
+          echo "⚠️ WARNING: You are about to DESTROY all Infra resources."
+          for env in tf-infra/env/*; do
+            echo "⚠️ Terraform destroy in $env ⚠️"
+            for region in "$env"/*; do
+              terraform -chdir=$region/infra destroy -auto-approve
+              echo "Destroyed all infra at region: $region"
+            echo "Destroyed all infra at environment: $env"
+            done
           done
           else
             echo "❌ Terraform destroy cancelled."
             exit 1
           fi
 
-      # - name: Create AWS ECR
-      #   run: |
-      #     echo $(pwd)
-      #     cd tf-infra/resources/ecr
-      #     terraform destroy -auto-approve
+      - name: Destroy AWS ECR
+        run: |
+          terraform -chdir=tf-infra/resources/ecr init
+          terraform -chdir=tf-infra/resources/ecr destroy -auto-approve
+          echo "Destroyed ECR ⚠️"
 
-      # - name: Destroy S3 Bucket
-      #   run: |
-      #     echo $(pwd)
-      #     cd tf-infra/resources/s3-bucket
-      #     terraform destroy -auto-approve
+      - name: Destroy S3 Bucket
+        run: |
+          terraform -chdir=tf-infra/resources/s3-bucket init
+          terraform -chdir=tf-infra/resources/s3-bucket destroy -auto-approve
+          echo "Destroyed ECR ⚠️"
