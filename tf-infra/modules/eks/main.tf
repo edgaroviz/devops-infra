@@ -14,6 +14,13 @@ module "eks" {
     support_type = "STANDARD"
   }
 
+  access_entries = [
+    {
+      kubernetes_groups = ["system:masters"]
+      principal_arn     = "arn:aws:iam::920373021859:user/edgaroviz7"
+      type              = "USER"
+    }
+  ]
   # eks_managed_node_groups = {
   #   general-purpose = {
   #     min_size     = 1
