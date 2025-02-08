@@ -14,11 +14,14 @@ module "eks" {
     support_type = "STANDARD"
   }
 
-  access_entries = {
+  # 🔹 Fixed `access_entries`: changed `{}` to `[]`
+  access_entries = [
+    {
       kubernetes_groups = ["system:masters"]
       principal_arn     = "arn:aws:iam::920373021859:user/edgaroviz7"
       type              = "USER"
     }
+  ]
 
   # eks_managed_node_groups = {
   #   general-purpose = {
@@ -28,6 +31,7 @@ module "eks" {
   #     instance_types = ["t3.medium"]
   #   }
   # }
+
   create_kms_key = false
   cluster_encryption_config = {}
 
