@@ -20,7 +20,7 @@ module "eks" {
     edgaroviz7 = {
       kubernetes_groups = ["system:masters"]
       principal_arn     = "arn:aws:iam::920373021859:user/edgaroviz7"
-      type              = "USER"
+      type              = "STANDARD"
     }
   } 
 
