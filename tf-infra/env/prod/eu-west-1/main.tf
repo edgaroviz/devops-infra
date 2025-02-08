@@ -34,7 +34,7 @@ module "eks" {
 
 # module "argocd" {
 #   depends_on = [ module.eks ]
-#   source = "../../../../modules/argocd"
+#   source = "../../../modules/argocd"
 # }
 
 # module "aws_lb_controller" {
