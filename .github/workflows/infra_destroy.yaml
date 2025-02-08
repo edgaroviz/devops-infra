@@ -36,7 +36,8 @@ jobs:
           for env in tf-infra/env/*; do
             echo "Destroying Terraform resources in $env"
             for region in "$env"*/; do
-              terraform -chdir=$region destroy -auto-approve
+              terraform -chdir=$region/infra init
+              terraform -chdir=$region/infra destroy -auto-approve
               echo "Destroyed Terraform resources at $region"
             done
             echo "Completed destroy for $env"
