@@ -31,3 +31,16 @@ module "eks" {
   region = local.region
   # extended_support = 
 }
+
+module "argocd" {
+  depends_on = [ module.eks ]
+  source = "../../../../modules/argocd"
+}
+
+module "aws_lb_controller" {
+  depends_on = [ module.argocd ]
+  source = "../../../../modules/aws-lb"
+
+  environment = local.environment
+  region = local.region
+}
