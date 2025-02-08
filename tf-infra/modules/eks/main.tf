@@ -18,7 +18,7 @@ module "eks" {
   # 🔹 Fix: Change `access_entries` to a Map (`{}`)
   access_entries = {
     edgaroviz7 = {
-      kubernetes_groups = ["system:masters"]
+      cluster_name      = "ze-${var.environment}-${var.region}-eks"
       principal_arn     = "arn:aws:iam::920373021859:user/edgaroviz7"
       type              = "STANDARD"
     }
