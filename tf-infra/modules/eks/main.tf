@@ -15,13 +15,14 @@ module "eks" {
   }
 
   # 🔹 Fixed `access_entries`: changed `{}` to `[]`
-  access_entries = [
-    {
+  # 🔹 Fix: Change `access_entries` to a Map (`{}`)
+  access_entries = {
+    edgaroviz7 = {
       kubernetes_groups = ["system:masters"]
       principal_arn     = "arn:aws:iam::920373021859:user/edgaroviz7"
       type              = "USER"
     }
-  ]
+  } 
 
   # eks_managed_node_groups = {
   #   general-purpose = {
