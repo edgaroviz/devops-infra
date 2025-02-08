@@ -35,7 +35,7 @@ jobs:
           echo "⚠️ WARNING: You are about to DESTROY all Terraform resources."
           for env in tf-infra/env/*; do
             echo "Destroying Terraform resources in $env"
-            for region in "$env"*/; do
+            for region in "$env"/*; do
               terraform -chdir=$region/infra init
               terraform -chdir=$region/infra destroy -auto-approve
               echo "Destroyed Terraform resources at $region"
