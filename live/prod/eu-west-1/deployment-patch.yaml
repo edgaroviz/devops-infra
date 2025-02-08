@@ -9,4 +9,4 @@ spec:
     spec:
       containers:
       - name: counter-service
-        image: 920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze_my_ecr:91dd32ec66e1e6675a592fd198f0d2290316a76d
+        image: 920373021859.dkr.ecr.eu-west-1.amazonaws.com/ze_my_ecr:2051a1fa12576faaa05a071d3fb10db66d10e588
