@@ -142,8 +142,8 @@ jobs:
           done
 
   Argo_installation:
-    needs: [Terraform-init-validate-apply]
-    if: always()
+    needs: [ Terraform-init-validate-apply ]
+    if: success()
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
