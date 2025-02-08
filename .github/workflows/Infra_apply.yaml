@@ -112,7 +112,7 @@ jobs:
                   terraform -chdir="$region_path/argocd" apply -auto-approve
                   echo "Deployed ArgoCD at region: $region"
 
-                  kubectl create secret generic argocd-devops-infra-repo \
+                  kubectl apply secret generic argocd-devops-infra-repo \
                     --namespace argocd \
                     --from-literal=url=git@github.com:edgaroviz/devops-infra.git \
                     --from-literal=name=devops-infra \
