@@ -28,8 +28,10 @@ module "eks" {
               type = "cluster"
             }
           }
+      }
     }
   }
+
 
   # eks_managed_node_groups = {
   #   general-purpose = {
