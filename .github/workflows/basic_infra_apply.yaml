@@ -5,8 +5,7 @@ on:
   push:
     branches:
       - master
-      - refine-policy-permissions
-
+=
 permissions:
   id-token: write
   contents: read
