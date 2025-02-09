@@ -98,8 +98,8 @@ jobs:
 
   Terraform-init-validate-apply:
     runs-on: ubuntu-latest
-    needs: [ ECR_creation ]
-    if: always()
+    # needs: [ ECR_creation ]
+    # if: always()
 
     steps:
       - name: Checkout repository
