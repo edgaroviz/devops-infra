@@ -182,6 +182,11 @@ jobs:
                   terraform -chdir="$region_path/argocd" apply -auto-approve
                   echo "Deployed ArgoCD at region: $region"
 
+                  if kubectl get secret argocd-devops-infra-repo -n argocd >/dev/null 2>&1; then
+                      echo "Secret argocd-devops-infra-repo already exists. Deleting it..."
+                      kubectl delete secret argocd-devops-infra-repo -n argocd
+                  fi
+
                   echo "${{ secrets.GIT_SSH_KEY }}" > /tmp/argocd_ssh_key
                   chmod 600 /tmp/argocd_ssh_key
                   kubectl create secret generic argocd-devops-infra-repo \
