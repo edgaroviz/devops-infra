@@ -1,11 +1,11 @@
-name: Verify/Create IAM, S3 and ECR
+name: Create infra and deploy application with ArgoCD
 
 on:
   workflow_dispatch:
   push:
     branches:
       - master
-
+=
 permissions:
   id-token: write
   contents: read
@@ -29,6 +29,7 @@ jobs:
       - name: S3 Bucket Verification
         id: s3_check
         run: |
+          echo "Verify 🪣"
           if aws s3api head-bucket --bucket ze-my-bucket 2>/dev/null; then
               echo "s3_skip=true" >> $GITHUB_OUTPUT
           else
@@ -61,7 +62,7 @@ jobs:
 
       - name: Create S3 Bucket
         run: |
-          echo "Creating bucket"
+          echo "Creating bucket 🪣"
           cd tf-infra/resources/s3-bucket
           terraform init
           terraform apply -auto-approve
@@ -90,7 +91,7 @@ jobs:
 
       - name: Create AWS ECR
         run: |
-          echo "Creating ECR"
+          echo "Creating ECR🚢"
           cd tf-infra/resources/ecr
           terraform init
           terraform apply -auto-approve
@@ -122,23 +123,23 @@ jobs:
       - name: Terraform infra init, validate for all environments and regions
         run: |
           for env in tf-infra/env/*; do
-            echo "Terraform init, valite and plan in $env"
+            echo "Terraform init, valite and plan in $env 🛠"
             for region in "$env"/*; do
               terraform -chdir=$region/infra init
               terraform -chdir=$region/infra validate
               echo "Initialized and validated changes at region: $region"
-            echo "Initialized and validated changes at envrionemnt: $env"
+            echo "Initialized and validated changes at envrionemnt: $env 🔥"
             done
           done
 
       - name: Terraform infra apply for all environments and regions
         run: |
           for env in tf-infra/env/*; do
-            echo "Terraform apply in $env"
+            echo "Terraform apply in $env 🏗"
             for region in "$env"/*; do
               terraform -chdir=$region/infra apply -auto-approve
               echo "Applied changes at region: $region"
-            echo "Applied changes at environment: $env"
+            echo "Applied changes at environment: $env 🔥"
             done
           done
 
@@ -173,14 +174,14 @@ jobs:
         run: |
           helm repo add argo https://argoproj.github.io/argo-helm
           for env in tf-infra/env/*; do
-              echo "ArgoCD installation in $env"
+              echo "ArgoCD installation in $env 🤖"
               for region_path in "$env"/*; do
                   region=$(basename "$region_path")
                   echo "Deploying ArgoCD in region: $region"
                   aws eks --region "$region" update-kubeconfig --name ze-${env##*/}-$region-eks --kubeconfig ~/.kube/config
                   terraform -chdir="$region_path/argocd" init
                   terraform -chdir="$region_path/argocd" apply -auto-approve
-                  echo "Deployed ArgoCD at region: $region"
+                  echo "Deployed ArgoCD at region: $region 🤖"
 
                   if kubectl get secret argocd-devops-infra-repo -n argocd >/dev/null 2>&1; then
                       echo "Secret argocd-devops-infra-repo already exists. Deleting it..."
@@ -198,7 +199,7 @@ jobs:
                     --type Opaque
 
                   kubectl label secret argocd-devops-infra-repo -n argocd argocd.argoproj.io/secret-type=repository --overwrite
-                  echo "Attached Devops-infra repo to ArgoCD at region: $region"
+                  echo "Attached Devops-infra repo to ArgoCD at region: $region 🤖"
               done
               echo "Applied ArgoCD and repository at environment: ${env##*/}"
           done
@@ -215,5 +216,5 @@ jobs:
                   kubectl apply -f "$region_path/counter-service-app.yaml"
                   echo "Deployed counter-service app at region: $region"
               done
-              echo "Deployed counter-service app at environment: $env_name"
+              echo "Deployed counter-service app at environment: $env_name 🚀"
           done
