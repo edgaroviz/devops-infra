@@ -65,4 +65,4 @@ jobs:
         run: |
           terraform -chdir=tf-infra/resources/s3-bucket init
           terraform -chdir=tf-infra/resources/s3-bucket destroy -auto-approve
-          echo "Destroyed ECR ⚠️"
+          echo "Bucket not destroyed - 🐔 and 🥚 paradox, delete the bucket manually and keep calm"
