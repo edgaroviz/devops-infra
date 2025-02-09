@@ -29,7 +29,3 @@ To use this repository, ensure you have:
 
 ## Contributions
 Feel free to submit pull requests and issues for improvements. Make sure to follow the branch naming conventions and create merge requests when modifying infrastructure components.
-
-## License
-This repository is licensed under Check Point's internal guidelines.
-
